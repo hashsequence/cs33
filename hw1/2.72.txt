@@ -1,0 +1,26 @@
+A. since the operation of maxbytes-sizeof(val) is and int minus a size_t, it will always return an unsigned number, thus the statement is always true.
+
+B. /*we want the comparison to have negative numbers so if use typecasting using explicit conversion in the conditional statement we can fix it*/
+
+/*here is me testing out typecasting:
+
+#include<stdio.h>
+
+int main(void)
+{
+int maxbytes = 1000;
+size_t letter = 1500;
+if (maxbytes - (int)letter >=0)
+	printf("greater than zero\n");
+else
+printf("less than zero\n");
+}
+
+*/
+
+ans:
+
+void copy_int(int val, void *buf, int maxbytes){
+	if (maxbytes-(int)size0f(val) >= 0)
+		memcpy(buf, (void *), &val, sizeof(val));
+}

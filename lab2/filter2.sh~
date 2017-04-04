@@ -1,0 +1,3 @@
+#!/bin/sh
+
+sed 's/WatchPoint/=> WatchPoint/g' | sed 's/Old/=> Old/g' | sed 's/New/=> New/g' | grep "=>.*" | sed 's/=> //g' 

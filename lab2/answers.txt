@@ -1,0 +1,107 @@
+=========================================
+A FEW MORE QUESTIONS
+=========================================
+1) I ran the argument on GDB -batch -eval '(print (* 6997 -4398042316799 179))'
+and I got:                 -896699255797638033
+but the correct answer is: -5508385274225025937  
+so clearly this is the wrong answer, so I looked through my traced that
+was run with this argument and I paid atention to the rdi, rsi,rbx, rax 
+registers 
+I ran the program in GDB with Watch Points,
+int a certain line I got rbx as -30773102090642603
+then it was multiplied by 179 that was currently in the rdi register
+and got ,-5508385274225025937 but then there were 
+some cmp and jmp instructions, which corresponds to the test cases
+when there are integer overflows, which handles the cases of overflow
+which of course changes the value
+
+
+this was lines I was examining:
+Watchpoint 5: $rbx
+Old value = -30773102090642603
+New value = -5508385274225025937
+0x0000000000541f44 <arith_driver+580>:  e9 87 fe ff ff  jmpq   0x541dd0 <arith_driver+208>
+0x0000000000541dd0 <arith_driver+208>:  49 8d 6f 01     lea    0x1(%r15),%rbp
+0x0000000000541dd4 <arith_driver+212>:  48 39 e9        cmp    %rbp,%rcx
+0x0000000000541dd7 <arith_driver+215>:  0f 8e 1d 01 00 00       jle    0x541efa <arith_driver+506>
+0x0000000000541efa <arith_driver+506>:  48 8d 04 9d 00 00 00 00 lea    0x0(,%rbx,4),%rax
+Watchpoint 7: $rax
+Old value = -51527218082987776
+New value = -3586797023190552132
+0x0000000000541f02 <arith_driver+514>:  48 83 c4 28     add    $0x28,%rsp
+0x0000000000541f06 <arith_driver+518>:  5b      pop    %rbx
+Watchpoint 5: $rbx
+Old value = -5508385274225025937
+New value = 140737488345272
+
+
+the rbx is never stored in rax so b/c there was an integer overflow
+since the biggest fix num is 2305843009213693951
+
+
+2)If I convert  2305843009213693951 into hex I get 0x1fffffffffffffff      
+basically emacs lisp uses the least significant 62 bytes to store the value
+
+In a trace I gatherd using most-positive-fixnum I got:
+
+0x0000000000541da1 <arith_driver+161>:  48 c1 ff 02     sar    $0x2,%rdi
+Watchpoint 2: $rdi
+Old value = 9223372036854775804
+New value = 2305843009213693951
+
+It seems it shifts the value of 0xFFFFFFFFFFFFFFFF by 2 
+to get 0x1FFFFFFFFFFFFFFF
+
+I looked in the data.c file to find the most-positive-fixnum, then
+I looked into lisp.h to find the defined valuue of most-positive-fixnum and got this:
+
+MOST_POSITIVE_FIXNUM (EMACS_INT_MAX >> INTTYPEBITS)
+
+3)
+
+I used GDB to emacs  -batch -eval '(print (* most-positive-fixnum most-positive-fixnum))'
+and here is the info register I am looking at:
+ info register
+rax            0x0      0
+rbx            0x1fffffffffffffff       2305843009213693951
+rcx            0x2      2
+rdx            0x3      3
+rsi            0x2      2
+rdi            0x1fffffffffffffff       2305843009213693951
+
+In the traces this is what I was looking at:
+
+0x0000000000541e65 <arith_driver+357>:  48 0f af fb     imul   %rbx,%rdi
+Watchpoint 2: $rdi
+Old value = 2305843009213693951
+New value = -4611686018427387903
+0x0000000000541e69 <arith_driver+361>:  48 bb ff ff ff ff ff ff ff 3f   movabs $0x3fffffffffffffff,%rbx
+Watchpoint 6: $rbx
+Old value = 2305843009213693951
+New value = 4611686018427387903
+0x0000000000541e73 <arith_driver+371>:  48 21 fb        and    %rdi,%rbx
+Watchpoint 6: $rbx
+Old value = 4611686018427387903
+New value = 1
+
+basing on what I see the values in rdi and rsi was and together 
+and the value yield 1
+
+4)if fsanitized=undefined option was used then a error message will be displayed in runtime if undefined behavior occurs, which might cause lost of 
+data and impacts performance
+
+5)fwrapv simply disregard the most significant bits when an overflow occurs
+therefore it does not need to check for overflow since it just wraps around
+and proceed as ususual. For example if there was a positive overflow the 
+extra bits will be disregarded and wrap around to the negative end
+
+6)if fwrapv was used in emacs, then I supposewhen doing integer multiplication
+it does not need to check for integer overflow and simply disregard the extra
+bits and wraps around if ther was an overflow and proceed as normal, albeit 
+with incorrect results
+
+7) fsanitized vs fwrapv will impact performance since fsanitized checks
+for integer overflow which will accumulate more machine instructions
+with more operations and will be slower than fwrapv which disregards 
+integer overflow checking in favor of just disregarding extra bits when 
+overflow occurs

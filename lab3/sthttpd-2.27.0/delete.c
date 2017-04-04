@@ -1,0 +1,19 @@
+#include<stdlib.h>
+#include<stdio.h>
+
+int main(int argc, int* argv[])
+{
+  int status;
+  char file_name[] = "target.txt";
+  status = remove(file_name);
+  /*
+  if( status == 0 )
+    printf("%s deleted successfully.\n",file_name);
+  else
+    {
+      printf("Unable to delete the file\n");
+      perror("Error");
+    }
+  */
+  return 0;
+}

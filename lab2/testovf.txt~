@@ -1,0 +1,241 @@
+Here are the 3 ways I compiled the test function and I concantenated the output into
+this textfile:
+
+(1)
+
+	.file	"ovf.c"
+	.text
+	.p2align 4,,15
+	.globl	testovf
+	.type	testovf, @function
+testovf:
+.LFB0:
+	.cfi_startproc
+	xorl	%eax, %eax
+	ret
+	.cfi_endproc
+.LFE0:
+	.size	testovf, .-testovf
+	.globl	big
+	.data
+	.align 8
+	.type	big, @object
+	.size	big, 8
+big:
+	.quad	9223372036854775807
+	.ident	"GCC: (GNU) 6.2.0"
+	.section	.note.GNU-stack,"",@progbits
+
+(2)
+
+	.file	"ovf.c"
+	.text
+	.p2align 4,,15
+	.globl	testovf
+	.type	testovf, @function
+testovf:
+.LFB0:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	pushq	%rbx
+	.cfi_def_cfa_offset 24
+	.cfi_offset 3, -24
+	movabsq	$9223372036854775807, %rdx
+	subq	$8, %rsp
+	.cfi_def_cfa_offset 32
+	movq	big(%rip), %rbx
+	movq	%rbx, %rbp
+	addq	%rdx, %rbp
+	jo	.L6
+.L2:
+	cmpq	%rbp, %rbx
+	setg	%al
+	addq	$8, %rsp
+	.cfi_remember_state
+	.cfi_def_cfa_offset 24
+	popq	%rbx
+	.cfi_def_cfa_offset 16
+	popq	%rbp
+	.cfi_def_cfa_offset 8
+	ret
+.L6:
+	.cfi_restore_state
+	movq	%rbx, %rsi
+	movl	$.Lubsan_data0, %edi
+	call	__ubsan_handle_add_overflow
+	jmp	.L2
+	.cfi_endproc
+.LFE0:
+	.size	testovf, .-testovf
+	.section	.rodata.str1.1,"aMS",@progbits,1
+.LC0:
+	.string	"ovf.c"
+	.data
+	.align 16
+	.type	.Lubsan_data0, @object
+	.size	.Lubsan_data0, 24
+.Lubsan_data0:
+	.quad	.LC0
+	.long	8
+	.long	14
+	.quad	.Lubsan_type0
+	.align 2
+	.type	.Lubsan_type0, @object
+	.size	.Lubsan_type0, 15
+.Lubsan_type0:
+	.value	0
+	.value	13
+	.string	"'long int'"
+	.globl	big
+	.align 8
+	.type	big, @object
+	.size	big, 8
+big:
+	.quad	9223372036854775807
+	.ident	"GCC: (GNU) 6.2.0"
+	.section	.note.GNU-stack,"",@progbits
+
+(3)
+	.file	"ovf.c"
+	.text
+	.p2align 4,,15
+	.globl	testovf
+	.type	testovf, @function
+testovf:
+.LFB0:
+	.cfi_startproc
+	movq	big(%rip), %rdx
+	movabsq	$9223372036854775807, %rax
+	addq	%rdx, %rax
+	cmpq	%rax, %rdx
+	setg	%al
+	ret
+	.cfi_endproc
+.LFE0:
+	.size	testovf, .-testovf
+	.globl	big
+	.data
+	.align 8
+	.type	big, @object
+	.size	big, 8
+big:
+	.quad	9223372036854775807
+	.ident	"GCC: (GNU) 6.2.0"
+	.section	.note.GNU-stack,"",@progbits
+
+I then used the diff commands to see the differences:
+
+the differences between 1 and 3 is :
+
+--- ovf1.s	2016-10-24 17:30:44.770077000 -0700
++++ ovf3.s	2016-10-24 17:32:46.292214000 -0700
+@@ -6,7 +6,11 @@
+ testovf:
+ .LFB0:
+ 	.cfi_startproc
+-	xorl	%eax, %eax
++	movq	big(%rip), %rdx
++	movabsq	$9223372036854775807, %rax
++	addq	%rdx, %rax
++	cmpq	%rax, %rdx
++	setg	%al
+ 	ret
+ 	.cfi_endproc
+ .LFE0:
+
+In (1) the line xorl %eax %eax sets the return to zero 
+
+In (2) denoted bby the + lines 
+first movs from the data stored in big(%rip) into %rdx
+then it stores the long numeric string which is the value of
+LONG_MAX into %rax
+
+then it adds the value in %rdx ad %rax and stores it in %rax
+the thing is since you are adding LONG_MAX and some value it should overflow if the number
+is positive
+
+IT compares the value in big(%rip) and LONGMAX and 
+then the instruction setg %al based on whether the number is 
+greater than LONGMAX and return 1 if it has overflowed 
+and 0 if not 
+
+
+next I looked at the differences between (2) and (3)
+--- ovf2.s	2016-10-24 17:32:19.922800000 -0700
++++ ovf3.s	2016-10-24 17:32:46.292214000 -0700
+@@ -6,59 +6,17 @@
+ testovf:
+ .LFB0:
+ 	.cfi_startproc
+-	pushq	%rbp             //push basepointer into th stack
+-	.cfi_def_cfa_offset 16
+-	.cfi_offset 6, -16
+-	pushq	%rbx             
+-	.cfi_def_cfa_offset 24
+-	.cfi_offset 3, -24
+-	movabsq	$9223372036854775807, %rdx  //moves LONG_MAX into rdx
+-	subq	$8, %rsp    //allocate 8 bytes into the stack
+-	.cfi_def_cfa_offset 32
+-	movq	big(%rip), %rbx
+-	movq	%rbx, %rbp
+-	addq	%rdx, %rbp                  
+-	jo	.L6
+-.L2:
+-	cmpq	%rbp, %rbx
++	movq	big(%rip), %rdx
++	movabsq	$9223372036854775807, %rax
++	addq	%rdx, %rax
++	cmpq	%rax, %rdx
+ 	setg	%al
+-	addq	$8, %rsp
+-	.cfi_remember_state
+-	.cfi_def_cfa_offset 24
+-	popq	%rbx
+-	.cfi_def_cfa_offset 16
+-	popq	%rbp
+-	.cfi_def_cfa_offset 8
+ 	ret
+-.L6:
+-	.cfi_restore_state
+-	movq	%rbx, %rsi
+-	movl	$.Lubsan_data0, %edi
+-	call	__ubsan_handle_add_overflow
+-	jmp	.L2
+ 	.cfi_endproc
+ .LFE0:
+ 	.size	testovf, .-testovf
+-	.section	.rodata.str1.1,"aMS",@progbits,1
+-.LC0:
+-	.string	"ovf.c"
+-	.data
+-	.align 16
+-	.type	.Lubsan_data0, @object
+-	.size	.Lubsan_data0, 24
+-.Lubsan_data0:
+-	.quad	.LC0
+-	.long	8
+-	.long	14
+-	.quad	.Lubsan_type0
+-	.align 2
+-	.type	.Lubsan_type0, @object
+-	.size	.Lubsan_type0, 15
+-.Lubsan_type0:
+-	.value	0
+-	.value	13
+-	.string	"'long int'"
+ 	.globl	big
++	.data
+ 	.align 8
+ 	.type	big, @object
+ 	.size	big, 8
+
+
+The - lines are the ones in (2) and the + lines are the ones in (3)
+since I have already analyzed 3 I only need to look at the lines of 
+(2)
+
+In 2 there are more jump instructions since when an overflow occurs
+it jumps to the respective label and then run, there are more instructions
+to account for the different cases of undefined behavior

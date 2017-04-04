@@ -1,0 +1,5 @@
+#!/bin/sh
+
+
+gdb --args ~eggert/bin64/bin/emacs-24.5 -batch -eval '(print (* 6997 -4398042316799 179))'
+

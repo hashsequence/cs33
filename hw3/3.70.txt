@@ -1,0 +1,45 @@
+3.70   3rd edition
+
+A) 
+
+e1.p    0
+e1.y    8
+e2.x    0
+e2.next 8
+
+B)
+
+e1 16
+e2 16
+
+C)
+
+%rdi holds the pointer up looking at the assembly code I get something like
+this:
+
+*up = *(*(*(up+8))) -*(*(up+8)+8)
+
+up->s1arg1 = *(*(up->s2arg2)) - *((up->s2arg2)+8)
+up->s1arg1 = *(up->s2arg2->something) - up->s2arg2->something2
+
+first of all look at s2arg2, the 2nd element of what up is pointing to
+must be dereferecable so the 2nd argument of *up has to be a pointer
+which means s1arg1 is e2.x and 21arg2 is e2.next
+
+up->e2.x = *(up->e2.next->something) - up->e2.next->something2
+
+something must still be a pointer of some sort and something2 must
+be a long
+
+something is either e2.next or e1.p and something2 is either e2.x or
+e1.y
+
+notice however that something2 is the 2nd argument of whatever struct it 
+is and something must be a pointer and is the first argument 
+so that mean these are elements of the e1 struct 
+
+up->e2.x = *(up->e2.next->e1.p) - up->e2.next->e1.y
+
+void proc (union ele *up) {
+     up->e2.x = *(up->e2.next->e1.p) - up->e2.next->e1.y;
+}

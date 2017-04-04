@@ -1,0 +1,262 @@
+x-86 64
+
+0xffff
+
+stack <-- local variables
+|
+|
+V
+^
+|
+|
+Heap   <--malloc(), calloc(), new()
+Data <--global static vars
+Text<-executable instructions
+
+char arr[1L << 24]  //long shifted to the left 24 times  // this is in the data
+int g = 0; // in the data
+int useless()){return 0;} // text
+
+int main()  // in the text 
+{
+	void *pl, *pz, *p3, *p4 // p4 itself is in the stack, *p4 in the heap
+	int l = 0;  // stored in the stack
+	pl = malloc(1L << 28)
+	p2 =
+	p3 = 
+	p4 =
+}
+
+
+2)
+
+memory referencing bugs
+typdef struct {
+       int a[z];
+       double l;
+       }myStruct;
+
+double foo (int i){
+myStruct s;
+s.d = 3.14;
+s.a[i[ = 10736217....
+return s.d
+}
+
+0xff
+|
+|
+|
+|
+|
+|----
+|d7 .... d4
+|d3 .... d0
+|a[1]
+|a[0]
+------
+
+every | is 4 bytes 
+
+if we foo(0)
+if we foo(1)
+if we foo(2)
+foo(3) 
+significand = fractional 
+
+foo(2) will change the rightmost of ....d0 == 3.1399866
+foo(3) = -2.0000166
+
+foo(4) = 3.14
+foo(some large number) segmentation fault
+
+void echo()
+{
+	char buf[4]
+	gets(buf);
+	puts(buf);
+}	
+
+void call_echo(
+{
+	echo();
+}
+
+call echo:
+4006e8: sub $ox8 %rsp
+4006ec: mov $0x0 %eax
+4006f1:	call 4006cf<echo>
+4006f6: add $ox8 %rsp
+4006fa: retq
+4006cf: sub $0x18 %rsp
+	mov %rsp %rdi
+	callq 400680
+	mov %rsp %rdi
+	callq 400520
+	add $0x18 %rsp
+	ret
+
+|call_echo
+|return 
+|address
+|		}
+|		}
+|		}
+|		}echo  //20 bytes of padding
+|		}
+|	        }		
+|               }
+|[3]|[2]|[1]|[0] < buf /rsp
+
+scenario 1 23 byte input
+_______________
+
+ges reads until end and append /0
+
+scenario 25 byte input
+______________________
+blast into return address
+seg fault
+
+return address
+00 00 00 00
+00 40 06 f6
+
+blast away 06 f6 
+makes return address invalid
+scenario 24 byte input
+_______________________________-
+we only wipe out the first byte and
+the address is still valid
+
+
+
+
+code injections
+--------------------
+void p()
+{
+Q();
+}
+
+int Q()
+{
+	char buf[64]
+	gets(buf)
+	...
+	return
+}
+|
+|return addres   <--changed to B
+               }padding       }               }
+|              } 	      }		      }
+|	       ]	      }		      }gets
+|	       ]exploit code  }Q stack frame  }
+|	       ]	      }	       	      }
+|	       } gets	      }		      <--B
+|	       } 	      }
+
+we change the rurn adress to B so that it returns to B and initiates 
+the explot code
+
+1)provide an input string byte representation of executabe intruction code
+2)overwrite the return address to the address in buf
+3)p ret in Q, instead of going back to the next intruction
+   in p, I will go to the exploit code
+
+how to prevent overflow attacks
+-------------------------------------
+1)avoid producing vunerabilities
+2)system level protection
+-executable bit
+-stack offset randomization
+3)compiler level protection
+-ASLR - Adress spece layout randomization
+-stack canaries
+
+(1) avoiding code vunerabiolties
+------------------------------
+
+void echo()
+{
+	unsigned s = 4;
+	char buff[s];
+	fgets(buf,s,stdin);
+	puts(buff);
+	
+}	
+
+//fgets instead of gets
+//strncpy instead of strcpy
+
+
+(2) system leve protections
+---------------------------------------
+(a) randomized stack offsets
+-you start a program and we have an emptty stack, and
+we provide some offset randomly
+
+|  	   }offset
+|	   } 
+|	   }
+|	   }
+|
+|
+|
+|
+
+|
+[
+[
+|
+|adress2
+[adress1
+[
+[
+[
+|
+[
+[
+
+b) Nonexecutable code segments
+
+-marks te stack as nonexecutable
+set rip to some nonexecutabe address, cause program to crash
+
+hackers can get the executed code into location in texts, we want
+to find segments in text to piece together to make your own instructions
+
+mov rdi rax
+00 63 24 00 ret
+00 32 ret
+
+by using return oriented programming we can keep popping the address
+and it will go to an instruction in text and we keep doing that
+in a way you want them to do what you want
+
+//remember all segmentation faults only happen if you pop an invalid address
+   
+
+(3) compiler level
+----------------------------------------
+
+a) stack canaries
+-place a value beyond the buffer
+-before the return address
+-gcc -fstack -protector -strong
+
+instead of seg fault
+
+**stack smashing detected **
+[ call_echo
+[stack frame
+[
+|return address
+[
+[canary 8 bytes
+[
+[
+|[3]|[2]|[1]|[0]
+
+
+return oriented programming

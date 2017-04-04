@@ -1,0 +1,948 @@
+	.file	"mmc.c"
+	.text
+	.p2align 4,,15
+	.type	hash, @function
+hash:
+.LFB11:
+	.cfi_startproc
+	xorl	$177573, %edi
+	movl	%edi, %eax
+	sall	$5, %eax
+	addl	%eax, %edi
+	xorl	%edi, %esi
+	movl	%esi, %eax
+	sall	$5, %eax
+	addl	%eax, %esi
+	xorl	%esi, %edx
+	movl	%edx, %eax
+	sall	$5, %eax
+	addl	%edx, %eax
+	xorl	%ecx, %eax
+	andl	hash_mask(%rip), %eax
+	ret
+	.cfi_endproc
+.LFE11:
+	.size	hash, .-hash
+	.p2align 4,,15
+	.type	find_hash, @function
+find_hash:
+.LFB10:
+	.cfi_startproc
+	pushq	%rbx
+	.cfi_def_cfa_offset 16
+	.cfi_offset 3, -16
+	movq	%rdi, %r8
+	movq	%rsi, %r9
+	movq	%rdx, %r10
+	movq	%rcx, %r11
+	call	hash
+	movl	hash_size(%rip), %edx
+	movq	hash_table(%rip), %rbx
+	movl	hash_mask(%rip), %edi
+	leal	-1(%rax,%rdx), %esi
+	movl	%eax, %edx
+	movq	(%rbx,%rdx,8), %rcx
+	andl	%edi, %esi
+	testq	%rcx, %rcx
+	je	.L2
+	movl	%eax, %edx
+	jmp	.L5
+	.p2align 4,,10
+	.p2align 3
+.L4:
+	cmpl	%edx, %esi
+	je	.L6
+	addl	$1, %edx
+	andl	%edi, %edx
+	movl	%edx, %ecx
+	movq	(%rbx,%rcx,8), %rcx
+	testq	%rcx, %rcx
+	je	.L2
+.L5:
+	cmpl	56(%rcx), %eax
+	jne	.L4
+	cmpq	(%rcx), %r8
+	jne	.L4
+	cmpq	8(%rcx), %r9
+	jne	.L4
+	cmpq	16(%rcx), %r10
+	jne	.L4
+	cmpq	24(%rcx), %r11
+	jne	.L4
+.L2:
+	movq	%rcx, %rax
+	popq	%rbx
+	.cfi_remember_state
+	.cfi_def_cfa_offset 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L6:
+	.cfi_restore_state
+	xorl	%ecx, %ecx
+	movq	%rcx, %rax
+	popq	%rbx
+	.cfi_def_cfa_offset 8
+	ret
+	.cfi_endproc
+.LFE10:
+	.size	find_hash, .-find_hash
+	.p2align 4,,15
+	.type	add_hash, @function
+add_hash:
+.LFB9:
+	.cfi_startproc
+	movq	24(%rdi), %rcx
+	movq	8(%rdi), %rsi
+	movq	%rdi, %r9
+	movq	16(%rdi), %rdx
+	movq	(%rdi), %rdi
+	call	hash
+	movl	%eax, %r10d
+	movl	hash_size(%rip), %eax
+	movq	hash_table(%rip), %r8
+	movl	hash_mask(%rip), %edi
+	leal	-1(%r10,%rax), %esi
+	movl	%r10d, %eax
+	leaq	(%r8,%rax,8), %rcx
+	andl	%edi, %esi
+	cmpq	$0, (%rcx)
+	je	.L19
+	cmpl	%esi, %r10d
+	movl	$-1, %eax
+	je	.L13
+	movl	%r10d, %edx
+	jmp	.L17
+	.p2align 4,,10
+	.p2align 3
+.L22:
+	cmpl	%edx, %esi
+	je	.L21
+.L17:
+	addl	$1, %edx
+	andl	%edi, %edx
+	movl	%edx, %ecx
+	leaq	(%r8,%rcx,8), %rcx
+	cmpq	$0, (%rcx)
+	jne	.L22
+.L14:
+	movq	%r9, (%rcx)
+	xorl	%eax, %eax
+	movl	%r10d, 56(%r9)
+	movl	%edx, 60(%r9)
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L21:
+	movl	$-1, %eax
+.L13:
+	rep ret
+.L19:
+	movl	%r10d, %edx
+	jmp	.L14
+	.cfi_endproc
+.LFE9:
+	.size	add_hash, .-add_hash
+	.p2align 4,,15
+	.type	check_hash_size, @function
+check_hash_size:
+.LFB8:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	pushq	%rbx
+	.cfi_def_cfa_offset 24
+	.cfi_offset 3, -24
+	subq	$8, %rsp
+	.cfi_def_cfa_offset 32
+	movq	hash_table(%rip), %rdi
+	testq	%rdi, %rdi
+	je	.L44
+	movl	map_count(%rip), %eax
+	movl	hash_size(%rip), %ebx
+	leal	(%rax,%rax,2), %ebp
+	cmpl	%ebx, %ebp
+	jg	.L27
+.L31:
+	addq	$8, %rsp
+	.cfi_remember_state
+	.cfi_def_cfa_offset 24
+	xorl	%eax, %eax
+	popq	%rbx
+	.cfi_def_cfa_offset 16
+	popq	%rbp
+	.cfi_def_cfa_offset 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L27:
+	.cfi_restore_state
+	call	free
+	leal	(%rbp,%rbp), %eax
+	.p2align 4,,10
+	.p2align 3
+.L28:
+	addl	%ebx, %ebx
+	cmpl	%eax, %ebx
+	jl	.L28
+	leal	-1(%rbx), %eax
+	movslq	%ebx, %rdi
+	movl	%ebx, hash_size(%rip)
+	salq	$3, %rdi
+	movl	%eax, hash_mask(%rip)
+	call	malloc
+	testq	%rax, %rax
+	movq	%rax, hash_table(%rip)
+	je	.L29
+	testl	%ebx, %ebx
+	jle	.L33
+.L25:
+	xorl	%edx, %edx
+	.p2align 4,,10
+	.p2align 3
+.L32:
+	movq	$0, (%rax,%rdx,8)
+	addq	$1, %rdx
+	cmpl	%edx, %ebx
+	jg	.L32
+.L33:
+	movq	maps(%rip), %r11
+	testq	%r11, %r11
+	jne	.L38
+	jmp	.L31
+	.p2align 4,,10
+	.p2align 3
+.L45:
+	movq	64(%r11), %r11
+	testq	%r11, %r11
+	je	.L31
+.L38:
+	movq	%r11, %rdi
+	call	add_hash
+	testl	%eax, %eax
+	jns	.L45
+.L29:
+	addq	$8, %rsp
+	.cfi_remember_state
+	.cfi_def_cfa_offset 24
+	movl	$-1, %eax
+	popq	%rbx
+	.cfi_def_cfa_offset 16
+	popq	%rbp
+	.cfi_def_cfa_offset 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L44:
+	.cfi_restore_state
+	movl	$8192, %edi
+	movl	$1024, hash_size(%rip)
+	movl	$1023, hash_mask(%rip)
+	call	malloc
+	testq	%rax, %rax
+	movq	%rax, hash_table(%rip)
+	je	.L29
+	movl	$1024, %ebx
+	jmp	.L25
+	.cfi_endproc
+.LFE8:
+	.size	check_hash_size, .-check_hash_size
+	.section	.rodata.str1.1,"aMS",@progbits,1
+.LC0:
+	.string	"munmap - %m"
+	.text
+	.p2align 4,,15
+	.type	really_unmap, @function
+really_unmap:
+.LFB6:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	pushq	%rbx
+	.cfi_def_cfa_offset 24
+	.cfi_offset 3, -24
+	movq	%rdi, %rbp
+	subq	$8, %rsp
+	.cfi_def_cfa_offset 32
+	movq	(%rdi), %rbx
+	movq	16(%rbx), %rsi
+	testq	%rsi, %rsi
+	jne	.L54
+.L47:
+	movq	64(%rbx), %rax
+	movslq	60(%rbx), %rdx
+	subq	%rsi, mapped_bytes(%rip)
+	subl	$1, map_count(%rip)
+	movq	%rax, 0(%rbp)
+	movq	free_maps(%rip), %rax
+	movq	%rax, 64(%rbx)
+	movq	hash_table(%rip), %rax
+	movq	%rbx, free_maps(%rip)
+	addl	$1, free_count(%rip)
+	movq	$0, (%rax,%rdx,8)
+	addq	$8, %rsp
+	.cfi_remember_state
+	.cfi_def_cfa_offset 24
+	popq	%rbx
+	.cfi_def_cfa_offset 16
+	popq	%rbp
+	.cfi_def_cfa_offset 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L54:
+	.cfi_restore_state
+	movq	48(%rbx), %rdi
+	call	munmap
+	testl	%eax, %eax
+	js	.L55
+.L53:
+	movq	16(%rbx), %rsi
+	jmp	.L47
+	.p2align 4,,10
+	.p2align 3
+.L55:
+	movl	$.LC0, %esi
+	movl	$3, %edi
+	xorl	%eax, %eax
+	call	syslog
+	jmp	.L53
+	.cfi_endproc
+.LFE6:
+	.size	really_unmap, .-really_unmap
+	.section	.rodata.str1.8,"aMS",@progbits,1
+	.align 8
+.LC1:
+	.string	"mmc panic - freeing all unreferenced maps"
+	.section	.text.unlikely,"ax",@progbits
+	.type	panic, @function
+panic:
+.LFB5:
+	.cfi_startproc
+	pushq	%rbx
+	.cfi_def_cfa_offset 16
+	.cfi_offset 3, -16
+	movl	$.LC1, %esi
+	movl	$3, %edi
+	xorl	%eax, %eax
+	movl	$maps, %ebx
+	call	syslog
+.L57:
+	movq	(%rbx), %rax
+	testq	%rax, %rax
+	je	.L62
+	cmpl	$0, 32(%rax)
+	jne	.L58
+	movq	%rbx, %rdi
+	call	really_unmap
+	jmp	.L57
+.L58:
+	leaq	64(%rax), %rbx
+	jmp	.L57
+.L62:
+	popq	%rbx
+	.cfi_def_cfa_offset 8
+	ret
+	.cfi_endproc
+.LFE5:
+	.size	panic, .-panic
+	.section	.rodata.str1.1
+.LC2:
+	.string	"stat - %m"
+.LC3:
+	.string	"check_hash_size() failure"
+.LC4:
+	.string	"open - %m"
+	.section	.rodata.str1.8
+	.align 8
+.LC5:
+	.string	"out of memory allocating a Map"
+	.section	.rodata.str1.1
+.LC6:
+	.string	"mmap - %m"
+.LC7:
+	.string	"add_hash() failure"
+	.text
+	.p2align 4,,15
+	.globl	mmc_map
+	.type	mmc_map, @function
+mmc_map:
+.LFB2:
+	.cfi_startproc
+	pushq	%r13
+	.cfi_def_cfa_offset 16
+	.cfi_offset 13, -16
+	pushq	%r12
+	.cfi_def_cfa_offset 24
+	.cfi_offset 12, -24
+	pushq	%rbp
+	.cfi_def_cfa_offset 32
+	.cfi_offset 6, -32
+	pushq	%rbx
+	.cfi_def_cfa_offset 40
+	.cfi_offset 3, -40
+	movq	%rdi, %rbx
+	subq	$168, %rsp
+	.cfi_def_cfa_offset 208
+	testq	%rsi, %rsi
+	je	.L64
+	leaq	16(%rsp), %rdi
+	movl	$18, %ecx
+	rep movsq
+.L65:
+	testq	%rdx, %rdx
+	je	.L67
+	movq	(%rdx), %rbp
+.L68:
+	call	check_hash_size
+	testl	%eax, %eax
+	js	.L88
+	movq	120(%rsp), %rcx
+	movq	64(%rsp), %rdx
+	movq	16(%rsp), %rsi
+	movq	24(%rsp), %rdi
+	call	find_hash
+	testq	%rax, %rax
+	je	.L70
+	addl	$1, 32(%rax)
+	movq	%rbp, 40(%rax)
+	movq	48(%rax), %rax
+.L63:
+	addq	$168, %rsp
+	.cfi_remember_state
+	.cfi_def_cfa_offset 40
+	popq	%rbx
+	.cfi_def_cfa_offset 32
+	popq	%rbp
+	.cfi_def_cfa_offset 24
+	popq	%r12
+	.cfi_def_cfa_offset 16
+	popq	%r13
+	.cfi_def_cfa_offset 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L70:
+	.cfi_restore_state
+	xorl	%esi, %esi
+	xorl	%eax, %eax
+	movq	%rbx, %rdi
+	call	open
+	testl	%eax, %eax
+	movl	%eax, %r12d
+	js	.L89
+	movq	free_maps(%rip), %rbx
+	testq	%rbx, %rbx
+	je	.L72
+	movq	64(%rbx), %rax
+	subl	$1, free_count(%rip)
+	movq	%rax, free_maps(%rip)
+.L73:
+	movq	24(%rsp), %rax
+	movq	64(%rsp), %r13
+	movq	%rax, (%rbx)
+	movq	16(%rsp), %rax
+	testq	%r13, %r13
+	movq	%r13, 16(%rbx)
+	movq	%rax, 8(%rbx)
+	movq	120(%rsp), %rax
+	movl	$1, 32(%rbx)
+	movq	%rbp, 40(%rbx)
+	movq	%rax, 24(%rbx)
+	jne	.L75
+	movq	$1, 48(%rbx)
+.L76:
+	movl	%r12d, %edi
+	call	close
+	movq	%rbx, %rdi
+	call	add_hash
+	testl	%eax, %eax
+	js	.L90
+	movq	maps(%rip), %rax
+	addl	$1, map_count(%rip)
+	movq	%rbx, maps(%rip)
+	movq	%rax, 64(%rbx)
+	movq	16(%rbx), %rax
+	addq	%rax, mapped_bytes(%rip)
+	movq	48(%rbx), %rax
+	jmp	.L63
+	.p2align 4,,10
+	.p2align 3
+.L64:
+	leaq	16(%rsp), %rsi
+	movq	%rdx, 8(%rsp)
+	call	stat
+	testl	%eax, %eax
+	movq	8(%rsp), %rdx
+	je	.L65
+	xorl	%eax, %eax
+	movl	$.LC2, %esi
+	movl	$3, %edi
+	call	syslog
+	xorl	%eax, %eax
+	jmp	.L63
+	.p2align 4,,10
+	.p2align 3
+.L67:
+	xorl	%edi, %edi
+	call	time
+	movq	%rax, %rbp
+	jmp	.L68
+	.p2align 4,,10
+	.p2align 3
+.L88:
+	xorl	%eax, %eax
+	movl	$.LC3, %esi
+	movl	$3, %edi
+	call	syslog
+	xorl	%eax, %eax
+	jmp	.L63
+	.p2align 4,,10
+	.p2align 3
+.L75:
+	xorl	%r9d, %r9d
+	xorl	%edi, %edi
+	movl	%r12d, %r8d
+	movl	$2, %ecx
+	movl	$1, %edx
+	movq	%r13, %rsi
+	call	mmap
+	cmpq	$-1, %rax
+	movq	%rax, 48(%rbx)
+	jne	.L76
+	call	__errno_location
+	cmpl	$12, (%rax)
+	je	.L78
+.L79:
+	movl	$.LC6, %esi
+	movl	$3, %edi
+	xorl	%eax, %eax
+	call	syslog
+	movl	%r12d, %edi
+	call	close
+	movq	%rbx, %rdi
+	call	free
+	subl	$1, alloc_count(%rip)
+	xorl	%eax, %eax
+	jmp	.L63
+.L72:
+	movl	$72, %edi
+	call	malloc
+	testq	%rax, %rax
+	movq	%rax, %rbx
+	je	.L91
+	addl	$1, alloc_count(%rip)
+	jmp	.L73
+.L90:
+	xorl	%eax, %eax
+	movl	$.LC7, %esi
+	movl	$3, %edi
+	call	syslog
+	movq	%rbx, %rdi
+	call	free
+	subl	$1, alloc_count(%rip)
+	xorl	%eax, %eax
+	jmp	.L63
+.L89:
+	xorl	%eax, %eax
+	movl	$.LC4, %esi
+	movl	$3, %edi
+	call	syslog
+	xorl	%eax, %eax
+	jmp	.L63
+.L78:
+	call	panic
+	xorl	%r9d, %r9d
+	xorl	%edi, %edi
+	movl	%r12d, %r8d
+	movl	$2, %ecx
+	movl	$1, %edx
+	movq	%r13, %rsi
+	call	mmap
+	movq	%rax, 48(%rbx)
+	addq	$1, %rax
+	jne	.L76
+	jmp	.L79
+.L91:
+	movl	%r12d, %edi
+	call	close
+	xorl	%eax, %eax
+	movl	$.LC5, %esi
+	movl	$3, %edi
+	call	syslog
+	xorl	%eax, %eax
+	jmp	.L63
+	.cfi_endproc
+.LFE2:
+	.size	mmc_map, .-mmc_map
+	.section	.rodata.str1.8
+	.align 8
+.LC8:
+	.string	"mmc_unmap found zero or negative refcount!"
+	.align 8
+.LC9:
+	.string	"mmc_unmap failed to find entry!"
+	.text
+	.p2align 4,,15
+	.globl	mmc_unmap
+	.type	mmc_unmap, @function
+mmc_unmap:
+.LFB3:
+	.cfi_startproc
+	testq	%rsi, %rsi
+	pushq	%r12
+	.cfi_def_cfa_offset 16
+	.cfi_offset 12, -16
+	movq	%rdx, %r12
+	pushq	%rbp
+	.cfi_def_cfa_offset 24
+	.cfi_offset 6, -24
+	movq	%rdi, %rbp
+	pushq	%rbx
+	.cfi_def_cfa_offset 32
+	.cfi_offset 3, -32
+	je	.L93
+	movq	104(%rsi), %rcx
+	movq	48(%rsi), %rdx
+	movq	8(%rsi), %rdi
+	movq	(%rsi), %rsi
+	call	find_hash
+	testq	%rax, %rax
+	movq	%rax, %rbx
+	je	.L93
+	cmpq	%rbp, 48(%rax)
+	je	.L94
+.L93:
+	movq	maps(%rip), %rbx
+	testq	%rbx, %rbx
+	jne	.L96
+	jmp	.L97
+	.p2align 4,,10
+	.p2align 3
+.L116:
+	movq	64(%rbx), %rbx
+	testq	%rbx, %rbx
+	je	.L97
+.L96:
+	cmpq	48(%rbx), %rbp
+	jne	.L116
+.L94:
+	movl	32(%rbx), %eax
+	testl	%eax, %eax
+	jle	.L117
+	subl	$1, %eax
+	testq	%r12, %r12
+	movl	%eax, 32(%rbx)
+	je	.L98
+	movq	(%r12), %rax
+	movq	%rax, 40(%rbx)
+.L92:
+	popq	%rbx
+	.cfi_remember_state
+	.cfi_def_cfa_offset 24
+	popq	%rbp
+	.cfi_def_cfa_offset 16
+	popq	%r12
+	.cfi_def_cfa_offset 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L98:
+	.cfi_restore_state
+	xorl	%edi, %edi
+	call	time
+	movq	%rax, 40(%rbx)
+	jmp	.L92
+	.p2align 4,,10
+	.p2align 3
+.L117:
+	movl	$.LC8, %esi
+.L114:
+	popq	%rbx
+	.cfi_remember_state
+	.cfi_def_cfa_offset 24
+	popq	%rbp
+	.cfi_def_cfa_offset 16
+	popq	%r12
+	.cfi_def_cfa_offset 8
+	movl	$3, %edi
+	xorl	%eax, %eax
+	jmp	syslog
+	.p2align 4,,10
+	.p2align 3
+.L97:
+	.cfi_restore_state
+	movl	$.LC9, %esi
+	jmp	.L114
+	.cfi_endproc
+.LFE3:
+	.size	mmc_unmap, .-mmc_unmap
+	.p2align 4,,15
+	.globl	mmc_cleanup
+	.type	mmc_cleanup, @function
+mmc_cleanup:
+.LFB4:
+	.cfi_startproc
+	testq	%rdi, %rdi
+	pushq	%r12
+	.cfi_def_cfa_offset 16
+	.cfi_offset 12, -16
+	pushq	%rbp
+	.cfi_def_cfa_offset 24
+	.cfi_offset 6, -24
+	pushq	%rbx
+	.cfi_def_cfa_offset 32
+	.cfi_offset 3, -32
+	je	.L119
+	movq	(%rdi), %rbp
+.L120:
+	movl	$maps, %ebx
+.L121:
+	movq	(%rbx), %rdx
+	testq	%rdx, %rdx
+	je	.L142
+.L124:
+	movl	32(%rdx), %eax
+	testl	%eax, %eax
+	jne	.L122
+	movq	%rbp, %rcx
+	subq	40(%rdx), %rcx
+	cmpq	expire_age(%rip), %rcx
+	jge	.L143
+.L122:
+	leaq	64(%rdx), %rbx
+	movq	(%rbx), %rdx
+	testq	%rdx, %rdx
+	jne	.L124
+.L142:
+	cmpq	$1000000000, mapped_bytes(%rip)
+	jg	.L141
+	movl	map_count(%rip), %eax
+	cmpl	$2000, %eax
+	jle	.L128
+.L141:
+	movq	expire_age(%rip), %rax
+	movl	$60, %edx
+	leaq	(%rax,%rax), %rcx
+	cmpq	$182, %rcx
+	jg	.L144
+.L129:
+	movq	%rdx, expire_age(%rip)
+.L127:
+	movl	free_count(%rip), %eax
+	cmpl	$100, %eax
+	jle	.L118
+	movl	alloc_count(%rip), %r12d
+	movq	free_maps(%rip), %rdi
+	leal	-1(%rax), %ebx
+	subl	%eax, %r12d
+	.p2align 4,,10
+	.p2align 3
+.L132:
+	movq	64(%rdi), %rbp
+	movl	%ebx, free_count(%rip)
+	movq	%rbp, free_maps(%rip)
+	call	free
+	leal	(%r12,%rbx), %eax
+	subl	$1, %ebx
+	movq	%rbp, %rdi
+	cmpl	$99, %ebx
+	movl	%eax, alloc_count(%rip)
+	jne	.L132
+.L118:
+	popq	%rbx
+	.cfi_remember_state
+	.cfi_def_cfa_offset 24
+	popq	%rbp
+	.cfi_def_cfa_offset 16
+	popq	%r12
+	.cfi_def_cfa_offset 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L143:
+	.cfi_restore_state
+	movq	%rbx, %rdi
+	call	really_unmap
+	jmp	.L121
+	.p2align 4,,10
+	.p2align 3
+.L144:
+	movq	%rcx, %rax
+	movabsq	$6148914691236517206, %rdx
+	sarq	$63, %rcx
+	imulq	%rdx
+	subq	%rcx, %rdx
+	jmp	.L129
+	.p2align 4,,10
+	.p2align 3
+.L128:
+	cmpl	$999, %eax
+	jg	.L127
+	movq	expire_age(%rip), %rax
+	leaq	(%rax,%rax,4), %rdx
+	movl	$1800, %eax
+	cmpq	$7199, %rdx
+	jg	.L131
+	leaq	3(%rdx), %rax
+	testq	%rdx, %rdx
+	cmovns	%rdx, %rax
+	sarq	$2, %rax
+.L131:
+	movq	%rax, expire_age(%rip)
+	jmp	.L127
+.L119:
+	xorl	%edi, %edi
+	call	time
+	movq	%rax, %rbp
+	jmp	.L120
+	.cfi_endproc
+.LFE4:
+	.size	mmc_cleanup, .-mmc_cleanup
+	.p2align 4,,15
+	.globl	mmc_destroy
+	.type	mmc_destroy, @function
+mmc_destroy:
+.LFB7:
+	.cfi_startproc
+	pushq	%r13
+	.cfi_def_cfa_offset 16
+	.cfi_offset 13, -16
+	pushq	%r12
+	.cfi_def_cfa_offset 24
+	.cfi_offset 12, -24
+	pushq	%rbp
+	.cfi_def_cfa_offset 32
+	.cfi_offset 6, -32
+	pushq	%rbx
+	.cfi_def_cfa_offset 40
+	.cfi_offset 3, -40
+	subq	$8, %rsp
+	.cfi_def_cfa_offset 48
+	cmpq	$0, maps(%rip)
+	je	.L149
+	.p2align 4,,10
+	.p2align 3
+.L152:
+	movl	$maps, %edi
+	call	really_unmap
+	cmpq	$0, maps(%rip)
+	jne	.L152
+.L149:
+	movq	free_maps(%rip), %rdi
+	movl	free_count(%rip), %ebp
+	movl	alloc_count(%rip), %r12d
+	testq	%rdi, %rdi
+	movl	%ebp, %ebx
+	je	.L145
+	.p2align 4,,10
+	.p2align 3
+.L151:
+	movq	64(%rdi), %r13
+	subl	$1, %ebx
+	movl	%ebx, free_count(%rip)
+	movq	%r13, free_maps(%rip)
+	call	free
+	leal	(%rbx,%r12), %eax
+	movq	%r13, %rdi
+	subl	%ebp, %eax
+	testq	%r13, %r13
+	movl	%eax, alloc_count(%rip)
+	jne	.L151
+.L145:
+	addq	$8, %rsp
+	.cfi_def_cfa_offset 40
+	popq	%rbx
+	.cfi_def_cfa_offset 32
+	popq	%rbp
+	.cfi_def_cfa_offset 24
+	popq	%r12
+	.cfi_def_cfa_offset 16
+	popq	%r13
+	.cfi_def_cfa_offset 8
+	ret
+	.cfi_endproc
+.LFE7:
+	.size	mmc_destroy, .-mmc_destroy
+	.section	.rodata.str1.8
+	.align 8
+.LC10:
+	.string	"  map cache - %d allocated, %d active (%lld bytes), %d free; hash size: %d; expire age: %ld"
+	.section	.rodata.str1.1
+.LC11:
+	.string	"map counts don't add up!"
+	.text
+	.p2align 4,,15
+	.globl	mmc_logstats
+	.type	mmc_logstats, @function
+mmc_logstats:
+.LFB12:
+	.cfi_startproc
+	subq	$8, %rsp
+	.cfi_def_cfa_offset 16
+	movl	hash_size(%rip), %eax
+	movl	map_count(%rip), %ecx
+	movl	alloc_count(%rip), %edx
+	movl	free_count(%rip), %r9d
+	movl	$.LC10, %esi
+	movq	mapped_bytes(%rip), %r8
+	pushq	expire_age(%rip)
+	.cfi_def_cfa_offset 24
+	movl	$6, %edi
+	pushq	%rax
+	.cfi_def_cfa_offset 32
+	xorl	%eax, %eax
+	call	syslog
+	movl	free_count(%rip), %eax
+	addl	map_count(%rip), %eax
+	cmpl	alloc_count(%rip), %eax
+	popq	%rdx
+	.cfi_def_cfa_offset 24
+	popq	%rcx
+	.cfi_def_cfa_offset 16
+	je	.L156
+	movl	$.LC11, %esi
+	movl	$3, %edi
+	xorl	%eax, %eax
+	addq	$8, %rsp
+	.cfi_remember_state
+	.cfi_def_cfa_offset 8
+	jmp	syslog
+	.p2align 4,,10
+	.p2align 3
+.L156:
+	.cfi_restore_state
+	addq	$8, %rsp
+	.cfi_def_cfa_offset 8
+	ret
+	.cfi_endproc
+.LFE12:
+	.size	mmc_logstats, .-mmc_logstats
+	.local	mapped_bytes
+	.comm	mapped_bytes,8,8
+	.data
+	.align 8
+	.type	expire_age, @object
+	.size	expire_age, 8
+expire_age:
+	.quad	600
+	.local	hash_mask
+	.comm	hash_mask,4,4
+	.local	hash_size
+	.comm	hash_size,4,4
+	.local	hash_table
+	.comm	hash_table,8,8
+	.local	free_count
+	.comm	free_count,4,4
+	.local	map_count
+	.comm	map_count,4,4
+	.local	alloc_count
+	.comm	alloc_count,4,4
+	.local	free_maps
+	.comm	free_maps,8,8
+	.local	maps
+	.comm	maps,8,8
+	.ident	"GCC: (GNU) 6.2.0"
+	.section	.note.GNU-stack,"",@progbits

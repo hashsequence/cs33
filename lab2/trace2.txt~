@@ -1,0 +1,293 @@
+[New Thread 0x7fffe3189700 (LWP 28531)]
+0x0000000000542140 <Ftimes+0>:	48 89 f2	mov    %rsi,%rdx
+Watchpoint 2: $rdi
+Watchpoint 3: $rsi
+Watchpoint 4: $rdx
+Watchpoint 5: $rbx
+Watchpoint 6: $rcx
+Watchpoint 7: $rax
+Watchpoint 4: $rdx
+Old value = 0
+New value = 140737488345248
+0x0000000000542143 <Ftimes+3>:	48 89 fe	mov    %rdi,%rsi
+Watchpoint 3: $rsi
+Old value = 140737488345248
+New value = 3
+0x0000000000542146 <Ftimes+6>:	bf 02 00 00 00	mov    $0x2,%edi
+Watchpoint 2: $rdi
+Old value = 3
+New value = 2
+0x000000000054214b <Ftimes+11>:	e9 b0 fb ff ff	jmpq   0x541d00 <arith_driver>
+0x0000000000541d00 <arith_driver+0>:	41 57	push   %r15
+0x0000000000541d02 <arith_driver+2>:	41 56	push   %r14
+0x0000000000541d04 <arith_driver+4>:	41 55	push   %r13
+0x0000000000541d06 <arith_driver+6>:	41 54	push   %r12
+0x0000000000541d08 <arith_driver+8>:	55	push   %rbp
+0x0000000000541d09 <arith_driver+9>:	53	push   %rbx
+0x0000000000541d0a <arith_driver+10>:	48 83 ec 28	sub    $0x28,%rsp
+0x0000000000541d0e <arith_driver+14>:	48 c7 44 24 10 01 00 00 00	movq   $0x1,0x10(%rsp)
+0x0000000000541d17 <arith_driver+23>:	83 ff 02	cmp    $0x2,%edi
+0x0000000000541d1a <arith_driver+26>:	74 11	je     0x541d2d <arith_driver+45>
+0x0000000000541d2d <arith_driver+45>:	48 85 f6	test   %rsi,%rsi
+0x0000000000541d30 <arith_driver+48>:	0f 8e 96 03 00 00	jle    0x5420cc <arith_driver+972>
+0x0000000000541d36 <arith_driver+54>:	48 8b 5c 24 10	mov    0x10(%rsp),%rbx
+Watchpoint 5: $rbx
+Old value = 140737488345272
+New value = 1
+0x0000000000541d3b <arith_driver+59>:	45 31 db	xor    %r11d,%r11d
+0x0000000000541d3e <arith_driver+62>:	49 89 d4	mov    %rdx,%r12
+0x0000000000541d41 <arith_driver+65>:	41 89 fe	mov    %edi,%r14d
+0x0000000000541d44 <arith_driver+68>:	31 ed	xor    %ebp,%ebp
+0x0000000000541d46 <arith_driver+70>:	48 89 f1	mov    %rsi,%rcx
+Watchpoint 6: $rcx
+Old value = 4611686018595160064
+New value = 3
+0x0000000000541d49 <arith_driver+73>:	45 89 dd	mov    %r11d,%r13d
+0x0000000000541d4c <arith_driver+76>:	48 c7 44 24 18 00 00 00 00	movq   $0x0,0x18(%rsp)
+0x0000000000541d55 <arith_driver+85>:	0f 1f 00	nopl   (%rax)
+0x0000000000541d58 <arith_driver+88>:	48 83 c5 01	add    $0x1,%rbp
+0x0000000000541d5c <arith_driver+92>:	44 89 f6	mov    %r14d,%esi
+Watchpoint 3: $rsi
+Old value = 3
+New value = 2
+0x0000000000541d5f <arith_driver+95>:	49 8b 7c ec f8	mov    -0x8(%r12,%rbp,8),%rdi
+Watchpoint 2: $rdi
+Old value = 2
+New value = 27988
+0x0000000000541d64 <arith_driver+100>:	4c 8d 7d ff	lea    -0x1(%rbp),%r15
+0x0000000000541d68 <arith_driver+104>:	41 89 f8	mov    %edi,%r8d
+0x0000000000541d6b <arith_driver+107>:	89 f8	mov    %edi,%eax
+Watchpoint 7: $rax
+Old value = 16491328
+New value = 27988
+0x0000000000541d6d <arith_driver+109>:	41 83 e0 07	and    $0x7,%r8d
+0x0000000000541d71 <arith_driver+113>:	41 83 f8 03	cmp    $0x3,%r8d
+0x0000000000541d75 <arith_driver+117>:	0f 84 f5 01 00 00	je     0x541f70 <arith_driver+624>
+0x0000000000541d7b <arith_driver+123>:	48 8b 15 16 33 63 00	mov    0x633316(%rip),%rdx        # 0xb75098
+Watchpoint 4: $rdx
+Old value = 140737488345248
+New value = 12277634
+0x0000000000541d82 <arith_driver+130>:	40 f6 c7 03	test   $0x3,%dil
+0x0000000000541d86 <arith_driver+134>:	74 0a	je     0x541d92 <arith_driver+146>
+0x0000000000541d92 <arith_driver+146>:	41 83 f8 07	cmp    $0x7,%r8d
+0x0000000000541d96 <arith_driver+150>:	0f 84 2c 02 00 00	je     0x541fc8 <arith_driver+712>
+0x0000000000541d9c <arith_driver+156>:	49 89 7c ec f8	mov    %rdi,-0x8(%r12,%rbp,8)
+0x0000000000541da1 <arith_driver+161>:	48 c1 ff 02	sar    $0x2,%rdi
+Watchpoint 2: $rdi
+Old value = 27988
+New value = 6997
+0x0000000000541da5 <arith_driver+165>:	41 83 fe 08	cmp    $0x8,%r14d
+0x0000000000541da9 <arith_driver+169>:	77 25	ja     0x541dd0 <arith_driver+208>
+0x0000000000541dab <arith_driver+171>:	ff 24 f5 00 93 5e 00	jmpq   *0x5e9300(,%rsi,8)
+0x0000000000541e30 <arith_driver+304>:	48 85 ff	test   %rdi,%rdi
+0x0000000000541e33 <arith_driver+307>:	0f 88 f7 01 00 00	js     0x542030 <arith_driver+816>
+0x0000000000541e39 <arith_driver+313>:	0f 84 01 01 00 00	je     0x541f40 <arith_driver+576>
+0x0000000000541e3f <arith_driver+319>:	48 85 db	test   %rbx,%rbx
+0x0000000000541e42 <arith_driver+322>:	0f 88 50 02 00 00	js     0x542098 <arith_driver+920>
+0x0000000000541e48 <arith_driver+328>:	48 b8 ff ff ff ff ff ff ff 7f	movabs $0x7fffffffffffffff,%rax
+Watchpoint 7: $rax
+Old value = 27988
+New value = 9223372036854775807
+0x0000000000541e52 <arith_driver+338>:	48 99	cqto   
+Watchpoint 4: $rdx
+Old value = 12277634
+New value = 0
+0x0000000000541e54 <arith_driver+340>:	48 f7 ff	idiv   %rdi
+Watchpoint 4: $rdx
+Old value = 0
+New value = 2212
+Watchpoint 7: $rax
+Old value = 9223372036854775807
+New value = 1318189515057135
+0x0000000000541e57 <arith_driver+343>:	48 39 d8	cmp    %rbx,%rax
+0x0000000000541e5a <arith_driver+346>:	0f 9c c0	setl   %al
+Watchpoint 7: $rax
+Old value = 1318189515057135
+New value = 1318189515056896
+0x0000000000541e5d <arith_driver+349>:	84 c0	test   %al,%al
+0x0000000000541e5f <arith_driver+351>:	0f 84 db 00 00 00	je     0x541f40 <arith_driver+576>
+0x0000000000541f40 <arith_driver+576>:	48 0f af df	imul   %rdi,%rbx
+Watchpoint 5: $rbx
+Old value = 1
+New value = 6997
+0x0000000000541f44 <arith_driver+580>:	e9 87 fe ff ff	jmpq   0x541dd0 <arith_driver+208>
+0x0000000000541dd0 <arith_driver+208>:	49 8d 6f 01	lea    0x1(%r15),%rbp
+0x0000000000541dd4 <arith_driver+212>:	48 39 e9	cmp    %rbp,%rcx
+0x0000000000541dd7 <arith_driver+215>:	0f 8e 1d 01 00 00	jle    0x541efa <arith_driver+506>
+0x0000000000541ddd <arith_driver+221>:	45 84 ed	test   %r13b,%r13b
+0x0000000000541de0 <arith_driver+224>:	0f 84 32 02 00 00	je     0x542018 <arith_driver+792>
+0x0000000000542018 <arith_driver+792>:	48 89 5c 24 10	mov    %rbx,0x10(%rsp)
+0x000000000054201d <arith_driver+797>:	48 89 6c 24 18	mov    %rbp,0x18(%rsp)
+0x0000000000542022 <arith_driver+802>:	e9 31 fd ff ff	jmpq   0x541d58 <arith_driver+88>
+0x0000000000541d58 <arith_driver+88>:	48 83 c5 01	add    $0x1,%rbp
+0x0000000000541d5c <arith_driver+92>:	44 89 f6	mov    %r14d,%esi
+0x0000000000541d5f <arith_driver+95>:	49 8b 7c ec f8	mov    -0x8(%r12,%rbp,8),%rdi
+Watchpoint 2: $rdi
+Old value = 6997
+New value = -17592169267196
+0x0000000000541d64 <arith_driver+100>:	4c 8d 7d ff	lea    -0x1(%rbp),%r15
+0x0000000000541d68 <arith_driver+104>:	41 89 f8	mov    %edi,%r8d
+0x0000000000541d6b <arith_driver+107>:	89 f8	mov    %edi,%eax
+Watchpoint 7: $rax
+Old value = 1318189515056896
+New value = 16777220
+0x0000000000541d6d <arith_driver+109>:	41 83 e0 07	and    $0x7,%r8d
+0x0000000000541d71 <arith_driver+113>:	41 83 f8 03	cmp    $0x3,%r8d
+0x0000000000541d75 <arith_driver+117>:	0f 84 f5 01 00 00	je     0x541f70 <arith_driver+624>
+0x0000000000541d7b <arith_driver+123>:	48 8b 15 16 33 63 00	mov    0x633316(%rip),%rdx        # 0xb75098
+Watchpoint 4: $rdx
+Old value = 2212
+New value = 12277634
+0x0000000000541d82 <arith_driver+130>:	40 f6 c7 03	test   $0x3,%dil
+0x0000000000541d86 <arith_driver+134>:	74 0a	je     0x541d92 <arith_driver+146>
+0x0000000000541d92 <arith_driver+146>:	41 83 f8 07	cmp    $0x7,%r8d
+0x0000000000541d96 <arith_driver+150>:	0f 84 2c 02 00 00	je     0x541fc8 <arith_driver+712>
+0x0000000000541d9c <arith_driver+156>:	49 89 7c ec f8	mov    %rdi,-0x8(%r12,%rbp,8)
+0x0000000000541da1 <arith_driver+161>:	48 c1 ff 02	sar    $0x2,%rdi
+Watchpoint 2: $rdi
+Old value = -17592169267196
+New value = -4398042316799
+0x0000000000541da5 <arith_driver+165>:	41 83 fe 08	cmp    $0x8,%r14d
+0x0000000000541da9 <arith_driver+169>:	77 25	ja     0x541dd0 <arith_driver+208>
+0x0000000000541dab <arith_driver+171>:	ff 24 f5 00 93 5e 00	jmpq   *0x5e9300(,%rsi,8)
+0x0000000000541e30 <arith_driver+304>:	48 85 ff	test   %rdi,%rdi
+0x0000000000541e33 <arith_driver+307>:	0f 88 f7 01 00 00	js     0x542030 <arith_driver+816>
+0x0000000000542030 <arith_driver+816>:	48 85 db	test   %rbx,%rbx
+0x0000000000542033 <arith_driver+819>:	78 7d	js     0x5420b2 <arith_driver+946>
+0x0000000000542035 <arith_driver+821>:	48 83 ff ff	cmp    $0xffffffffffffffff,%rdi
+0x0000000000542039 <arith_driver+825>:	0f 84 01 ff ff ff	je     0x541f40 <arith_driver+576>
+0x000000000054203f <arith_driver+831>:	48 b8 00 00 00 00 00 00 00 80	movabs $0x8000000000000000,%rax
+Watchpoint 7: $rax
+Old value = 16777220
+New value = -9223372036854775808
+0x0000000000542049 <arith_driver+841>:	48 99	cqto   
+Watchpoint 4: $rdx
+Old value = 12277634
+New value = -1
+0x000000000054204b <arith_driver+843>:	48 f7 ff	idiv   %rdi
+Watchpoint 4: $rdx
+Old value = -1
+New value = -10485762
+Watchpoint 7: $rax
+Old value = -9223372036854775808
+New value = 2097154
+0x000000000054204e <arith_driver+846>:	48 39 d8	cmp    %rbx,%rax
+0x0000000000542051 <arith_driver+849>:	0f 9c c0	setl   %al
+Watchpoint 7: $rax
+Old value = 2097154
+New value = 2097152
+0x0000000000542054 <arith_driver+852>:	e9 04 fe ff ff	jmpq   0x541e5d <arith_driver+349>
+0x0000000000541e5d <arith_driver+349>:	84 c0	test   %al,%al
+0x0000000000541e5f <arith_driver+351>:	0f 84 db 00 00 00	je     0x541f40 <arith_driver+576>
+0x0000000000541f40 <arith_driver+576>:	48 0f af df	imul   %rdi,%rbx
+Watchpoint 5: $rbx
+Old value = 6997
+New value = -30773102090642603
+0x0000000000541f44 <arith_driver+580>:	e9 87 fe ff ff	jmpq   0x541dd0 <arith_driver+208>
+0x0000000000541dd0 <arith_driver+208>:	49 8d 6f 01	lea    0x1(%r15),%rbp
+0x0000000000541dd4 <arith_driver+212>:	48 39 e9	cmp    %rbp,%rcx
+0x0000000000541dd7 <arith_driver+215>:	0f 8e 1d 01 00 00	jle    0x541efa <arith_driver+506>
+0x0000000000541ddd <arith_driver+221>:	45 84 ed	test   %r13b,%r13b
+0x0000000000541de0 <arith_driver+224>:	0f 84 32 02 00 00	je     0x542018 <arith_driver+792>
+0x0000000000542018 <arith_driver+792>:	48 89 5c 24 10	mov    %rbx,0x10(%rsp)
+0x000000000054201d <arith_driver+797>:	48 89 6c 24 18	mov    %rbp,0x18(%rsp)
+0x0000000000542022 <arith_driver+802>:	e9 31 fd ff ff	jmpq   0x541d58 <arith_driver+88>
+0x0000000000541d58 <arith_driver+88>:	48 83 c5 01	add    $0x1,%rbp
+0x0000000000541d5c <arith_driver+92>:	44 89 f6	mov    %r14d,%esi
+0x0000000000541d5f <arith_driver+95>:	49 8b 7c ec f8	mov    -0x8(%r12,%rbp,8),%rdi
+Watchpoint 2: $rdi
+Old value = -4398042316799
+New value = 716
+0x0000000000541d64 <arith_driver+100>:	4c 8d 7d ff	lea    -0x1(%rbp),%r15
+0x0000000000541d68 <arith_driver+104>:	41 89 f8	mov    %edi,%r8d
+0x0000000000541d6b <arith_driver+107>:	89 f8	mov    %edi,%eax
+Watchpoint 7: $rax
+Old value = 2097152
+New value = 716
+0x0000000000541d6d <arith_driver+109>:	41 83 e0 07	and    $0x7,%r8d
+0x0000000000541d71 <arith_driver+113>:	41 83 f8 03	cmp    $0x3,%r8d
+0x0000000000541d75 <arith_driver+117>:	0f 84 f5 01 00 00	je     0x541f70 <arith_driver+624>
+0x0000000000541d7b <arith_driver+123>:	48 8b 15 16 33 63 00	mov    0x633316(%rip),%rdx        # 0xb75098
+Watchpoint 4: $rdx
+Old value = -10485762
+New value = 12277634
+0x0000000000541d82 <arith_driver+130>:	40 f6 c7 03	test   $0x3,%dil
+0x0000000000541d86 <arith_driver+134>:	74 0a	je     0x541d92 <arith_driver+146>
+0x0000000000541d92 <arith_driver+146>:	41 83 f8 07	cmp    $0x7,%r8d
+0x0000000000541d96 <arith_driver+150>:	0f 84 2c 02 00 00	je     0x541fc8 <arith_driver+712>
+0x0000000000541d9c <arith_driver+156>:	49 89 7c ec f8	mov    %rdi,-0x8(%r12,%rbp,8)
+0x0000000000541da1 <arith_driver+161>:	48 c1 ff 02	sar    $0x2,%rdi
+Watchpoint 2: $rdi
+Old value = 716
+New value = 179
+0x0000000000541da5 <arith_driver+165>:	41 83 fe 08	cmp    $0x8,%r14d
+0x0000000000541da9 <arith_driver+169>:	77 25	ja     0x541dd0 <arith_driver+208>
+0x0000000000541dab <arith_driver+171>:	ff 24 f5 00 93 5e 00	jmpq   *0x5e9300(,%rsi,8)
+0x0000000000541e30 <arith_driver+304>:	48 85 ff	test   %rdi,%rdi
+0x0000000000541e33 <arith_driver+307>:	0f 88 f7 01 00 00	js     0x542030 <arith_driver+816>
+0x0000000000541e39 <arith_driver+313>:	0f 84 01 01 00 00	je     0x541f40 <arith_driver+576>
+0x0000000000541e3f <arith_driver+319>:	48 85 db	test   %rbx,%rbx
+0x0000000000541e42 <arith_driver+322>:	0f 88 50 02 00 00	js     0x542098 <arith_driver+920>
+0x0000000000542098 <arith_driver+920>:	48 b8 00 00 00 00 00 00 00 80	movabs $0x8000000000000000,%rax
+Watchpoint 7: $rax
+Old value = 716
+New value = -9223372036854775808
+0x00000000005420a2 <arith_driver+930>:	48 99	cqto   
+Watchpoint 4: $rdx
+Old value = 12277634
+New value = -1
+0x00000000005420a4 <arith_driver+932>:	48 f7 ff	idiv   %rdi
+Watchpoint 4: $rdx
+Old value = -1
+New value = -62
+Watchpoint 7: $rax
+Old value = -9223372036854775808
+New value = -51527218082987574
+0x00000000005420a7 <arith_driver+935>:	48 39 d8	cmp    %rbx,%rax
+0x00000000005420aa <arith_driver+938>:	0f 9f c0	setg   %al
+Watchpoint 7: $rax
+Old value = -51527218082987574
+New value = -51527218082987776
+0x00000000005420ad <arith_driver+941>:	e9 ab fd ff ff	jmpq   0x541e5d <arith_driver+349>
+0x0000000000541e5d <arith_driver+349>:	84 c0	test   %al,%al
+0x0000000000541e5f <arith_driver+351>:	0f 84 db 00 00 00	je     0x541f40 <arith_driver+576>
+0x0000000000541f40 <arith_driver+576>:	48 0f af df	imul   %rdi,%rbx
+Watchpoint 5: $rbx
+Old value = -30773102090642603
+New value = -5508385274225025937
+0x0000000000541f44 <arith_driver+580>:	e9 87 fe ff ff	jmpq   0x541dd0 <arith_driver+208>
+0x0000000000541dd0 <arith_driver+208>:	49 8d 6f 01	lea    0x1(%r15),%rbp
+0x0000000000541dd4 <arith_driver+212>:	48 39 e9	cmp    %rbp,%rcx
+0x0000000000541dd7 <arith_driver+215>:	0f 8e 1d 01 00 00	jle    0x541efa <arith_driver+506>
+0x0000000000541efa <arith_driver+506>:	48 8d 04 9d 00 00 00 00	lea    0x0(,%rbx,4),%rax
+Watchpoint 7: $rax
+Old value = -51527218082987776
+New value = -3586797023190552132
+0x0000000000541f02 <arith_driver+514>:	48 83 c4 28	add    $0x28,%rsp
+0x0000000000541f06 <arith_driver+518>:	5b	pop    %rbx
+Watchpoint 5: $rbx
+Old value = -5508385274225025937
+New value = 140737488345272
+0x0000000000541f07 <arith_driver+519>:	5d	pop    %rbp
+0x0000000000541f08 <arith_driver+520>:	41 5c	pop    %r12
+0x0000000000541f0a <arith_driver+522>:	41 5d	pop    %r13
+0x0000000000541f0c <arith_driver+524>:	41 5e	pop    %r14
+0x0000000000541f0e <arith_driver+526>:	41 5f	pop    %r15
+0x0000000000541f10 <arith_driver+528>:	c3	retq   
+0x0000000000555429 <eval_sub+1641>:	80 bd 78 ff ff ff 00	cmpb   $0x0,-0x88(%rbp)
+0x0000000000555430 <eval_sub+1648>:	48 89 c3	mov    %rax,%rbx
+Watchpoint 5: $rbx
+Old value = 140737488345272
+New value = -3586797023190552132
+0x0000000000555433 <eval_sub+1651>:	0f 84 48 fc ff ff	je     0x555081 <eval_sub+705>
+0x0000000000555081 <eval_sub+705>:	48 8b 05 00 02 62 00	mov    0x620200(%rip),%rax        # 0xb75288
+Watchpoint 7: $rax
+Old value = -3586797023190552132
+New value = 16490944
+0x0000000000555088 <eval_sub+712>:	48 83 2d 50 02 62 00 01	subq   $0x1,0x620250(%rip)        # 0xb752e0
+0x0000000000555090 <eval_sub+720>:	42 f6 44 28 01 01	testb  $0x1,0x1(%rax,%r13,1)
+0x0000000000555096 <eval_sub+726>:	0f 85 dc 00 00 00	jne    0x555178 <eval_sub+952>
+0x000000000055509c <eval_sub+732>:	48 83 2d 64 02 62 00 20	subq   $0x20,0x620264(%rip)        # 0xb75308
+0x00000000005550a4 <eval_sub+740>:	e9 41 fd ff ff	jmpq   0x554dea <eval_sub+42>
+0x0000000000554dea <eval_sub+42>:	48 8d 65 d8	lea    -0x28(%rbp),%rsp
+0x0000000000554dee <eval_sub+46>:	48 89 d8	mov    %rbx,%rax

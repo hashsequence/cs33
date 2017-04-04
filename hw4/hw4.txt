@@ -1,0 +1,51 @@
+2.89 3rd edition
+Avery Wong
+cs33
+904 582 269
+
+2.89
+A.
+(float)x == (float) dx
+true, because although converting a int to a float can cause 
+truncation whereas double to float can cause truncation oor overflow, we can
+overflow will not be a problem when converting a double to a float because 
+the value will be bounded by INTMAX and INTMIN so the both side will have truncation errors, but they'll truncate to the same number
+for example:c
+
+
+
+let x = 2 x 828239021
+
+B. dx-dy = (double)(x-y)
+false, x-y can overflow whereas dx-dy wont
+ex. 
+let x = INT_MAX and y = -1
+the rhs will overflow, whereas the left side wont
+
+C. (dx + dy) +dz == dx + (dy +dz)
+true
+although floating points are not associative
+the range of dx, dy, dz all range from INT_MIN to INT MAX
+and 3*INTMAX and 3*INT_MIN will result in no data loss since
+doubles are precise enough for the max and min sums
+D. (dx * dy) * dz == dx * (dy * dz)
+false, because floating points are not associative, for example
+I know that floating points are stored as a format of 2^E * M
+therefore I can still cause rounding errors by using product of prime 
+numbers that are not divisible by 2( or
+at least not two many 2's as factors)
+to force the  M field to be filled:
+let 
+x = (5 * 181 * 165523)
+y = ( 2 * 3 * 5 * 1783 * 38113)
+z = ( 769 * 1468877)
+
+clearly when I convert x, y, z, to dx dy dz, and I do (x*y) or 
+(y*z) I am going to get truncation errors because the product 
+requires more than 2^52-1 of precision
+
+E)
+dx/dx == dz/dz
+false
+let x and z = 0, then we get Nan in both sides
+and Nans are not equal to each other and will return false

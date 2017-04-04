@@ -1,0 +1,531 @@
+1)
+
+first I used wget http://web.cs.ucla.edu/classes/fall16/cs33/lab/sthttpd-2.27.0.tar.gz
+
+then I unzipped it using 
+
+tar -xvzf sthttpd-2.27.0.tgz
+
+then I made a patch file with the contents of the patch 
+named sthttpd_p
+
+then I used this command:
+
+patch -p0 < sthttpd_p
+
+2)
+
+Now I needed to compile the files, so these are my commands 
+
+make clean 
+make CFLAGS='-g3 -O2 -fno-inline -fstack-protector-strong'
+mv src/thttpd src/thttpd-sp
+
+make clean
+make CFLAGS='-g3 -O2 -fno-inline -static-libasan -fsanitize=address'
+mv src/thttpd src/thttpd-as
+
+make clean
+make CFLAGS='-g3 -O2 -fno-inline -fno-stack-protector -zexecstack'
+mv src/thttpd src/thttpd-no
+
+3)
+904-582-269 ==> (12330 + 3 * ( 904582269 % 293) + Y)
+Y = 1 ==> 12769
+Y = 2 ==> 12770
+Y = 3 ==> 12771
+ 
+here is what I did:
+
+emacs test.txt
+
+then I typed in:
+averywongblahmaster
+
+then I did the following commands:
+
+[classave@lnxsrv09 ~/cs33/lab3/sthttpd-2.27.0]$src/thttpd-sp -p 12769 -D
+
+//on another terminal same lnx srv
+[classave@lnxsrv09 ~/cs33/lab3/sthttpd-2.27.0]$ curl http://localhost:12769/test.txt
+averywongblahmaster
+
+[classave@lnxsrv09 ~/cs33/lab3/sthttpd-2.27.0]$ src/thttpd-as -p 12770 -D
+
+//on another terminal same lnx srv
+[classave@lnxsrv09 ~/cs33/lab3/sthttpd-2.27.0]$ curl http://localhost:12770/test.txt
+averywongblahmaster
+
+[classave@lnxsrv09 ~/cs33/lab3/sthttpd-2.27.0]$ src/thttpd-no -p 12771 -D
+
+//on another terminal same lnx srv
+[classave@lnxsrv09 ~/cs33/lab3/sthttpd-2.27.0]$ curl http://localhost:12771/test.txt
+averywongblahmaster
+
+
+according to piazza:
+So it turns out the -D(ebugging) flag specifically prevents the 
+server from serving as a daemon (background service). Meaning 
+thttpd runs in the foreground, "taking over" the shell window as
+ long you don't send a Keyboard Interrupt (Ctrl+C).
+What this means practically is you need to open up another shell
+ window, login to the same SEASNet server, and send your requests 
+(through e.g. 'curl' command) to the specific port from there to 
+verify that it works.
+
+5)
+now I am testing shttpd-sp and making it crash
+first I generated a textfile with the text:
+throttles=
+//followed by 400 'a'
+
+I typed in the command 
+gdb src/thttpd-sp
+
+and 
+
+(gdb) r -p 12769 -D -C in.txt
+Starting program: /w/home.15/class/classave/cs33/lab3/sthttpd-2.27.0/src/thttpd-sp -p 12769 -D -C in.txt
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib64/libthread_db.so.1".
+*** stack smashing detected ***: /w/home.15/class/classave/cs33/lab3/sthttpd-2.27.0/src/thttpd-sp terminated
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00007ffff6db0118 in ?? () from /lib64/libgcc_s.so.1
+
+
+I was trying overflow it by setting one of the options to a large buffer
+
+now I wanted to get a backtrace so 
+(gdb) bt
+
+which gave me
+
+(gdb) bt
+#0  0x00007ffff6db0118 in ?? () from /lib64/libgcc_s.so.1
+#1  0x00007ffff6db1019 in _Unwind_Backtrace () from /lib64/libgcc_s.so.1
+#2  0x00007ffff76e4be6 in backtrace () from /lib64/libc.so.6
+#3  0x00007ffff764f344 in __libc_message () from /lib64/libc.so.6
+#4  0x00007ffff76e8597 in __fortify_fail () from /lib64/libc.so.6
+#5  0x00007ffff76e8560 in __stack_chk_fail () from /lib64/libc.so.6
+#6  0x0000000000404cb3 in read_config (filename=<optimized out>) at thttpd.c:1190
+#7  0x4141414141414141 in ?? ()
+#8  0x4141414141414141 in ?? ()
+#9  0x4141414141414141 in ?? ()
+#10 0x4141414141414141 in ?? ()
+#11 0x4141414141414141 in ?? ()
+#12 0x4141414141414141 in ?? ()
+#13 0x4141414141414141 in ?? ()
+#14 0x4141414141414141 in ?? ()
+#15 0x4141414141414141 in ?? ()
+#16 0x4141414141414141 in ?? ()
+#17 0x4141414141414141 in ?? ()
+#18 0x4141414141414141 in ?? ()
+#19 0x4141414141414141 in ?? ()
+#20 0x4141414141414141 in ?? ()
+#21 0x4141414141414141 in ?? ()
+#22 0x4141414141414141 in ?? ()
+#23 0x4141414141414141 in ?? ()
+#24 0x4141414141414141 in ?? ()
+#25 0x4141414141414141 in ?? ()
+#26 0x4141414141414141 in ?? ()
+#27 0x4141414141414141 in ?? ()
+#28 0x4141414141414141 in ?? ()
+#29 0x4141414141414141 in ?? ()
+#30 0x4141414141414141 in ?? ()
+#31 0x4141414141414141 in ?? ()
+#32 0x4141414141414141 in ?? ()
+#33 0x4141414141414141 in ?? ()
+#34 0x4141414141414141 in ?? ()
+#35 0x4141414141414141 in ?? ()
+#36 0x4141414141414141 in ?? ()
+#37 0x4141414141414141 in ?? ()
+#38 0x4141414141414141 in ?? ()
+
+it seems the problem lies in read_config
+so I set a breakpoint at read_config:
+(gdb) b read_config
+(gdb) set disassemble-next-line on
+(gdb) r
+
+I repeadedly step through using
+(gdb) si
+and I finally got to here:
+=> 0x0000000000404c06 <read_config+1190>:       48 8b 44 24 68  mov    0x68(%rsp),%rax
+   0x0000000000404c0b <read_config+1195>:       64 48 33 04 25 28 00 00 00      xor    %fs:0x28,%rax
+   0x0000000000404c14 <read_config+1204>:       0f 85 94 00 00 00       jne    0x404cae <read_config+1358>
+   0x0000000000404c1a <read_config+1210>:       48 83 c4 78     add    $0x78,%rsp
+   0x0000000000404c1e <read_config+1214>:       5b      pop    %rbx
+   0x0000000000404c1f <read_config+1215>:       5d      pop    %rbp
+   0x0000000000404c20 <read_config+1216>:       41 5c   pop    %r12
+   0x0000000000404c22 <read_config+1218>:       41 5d   pop    %r13
+   0x0000000000404c24 <read_config+1220>:       c3      retq
+(gdb) s
+*** stack smashing detected ***: /w/home.15/class/classave/cs33/lab3/sthttpd-2.27.0/src/thttpd-sp terminated
+
+Here I did it a second time:
+
+(gdb) si
+0x0000000000404c14      1190        }
+   0x0000000000404c06 <read_config+1190>:       48 8b 44 24 68  mov    0x68(%rsp),%rax
+   0x0000000000404c0b <read_config+1195>:       64 48 33 04 25 28 00 00 00      xor    %fs:0x28,%rax
+=> 0x0000000000404c14 <read_config+1204>:       0f 85 94 00 00 00       jne    0x404cae <read_config+1358>
+   0x0000000000404c1a <read_config+1210>:       48 83 c4 78     add    $0x78,%rsp
+   0x0000000000404c1e <read_config+1214>:       5b      pop    %rbx
+   0x0000000000404c1f <read_config+1215>:       5d      pop    %rbp
+   0x0000000000404c20 <read_config+1216>:       41 5c   pop    %r12
+   0x0000000000404c22 <read_config+1218>:       41 5d   pop    %r13
+   0x0000000000404c24 <read_config+1220>:       c3      retq
+(gdb) si
+1190        }
+=> 0x0000000000404cae <read_config+1358>:       e8 cd d4 ff ff  callq  0x402180 <__stack_chk_fail@plt>
+
+
+the xor command checks the canaries, and it caled the stack check,so the canaries were corrupted and thus stack
+smashing was detected
+
+6)
+
+now  I want to test thttpd-as:
+
+[classave@lnxsrv09 ~/cs33/lab3/sthttpd-2.27.0]$ gdb src/thttpd-as
+GNU gdb (GDB) 7.10.1
+Copyright (C) 2015 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "x86_64-unknown-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+<http://www.gnu.org/software/gdb/documentation/>.
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from src/thttpd-as...done.
+(gdb) r -p 12770 -D -C in.txt
+Starting program: /w/home.15/class/classave/cs33/lab3/sthttpd-2.27.0/src/thttpd-as -p 12770 -D -C in.txt
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib64/libthread_db.so.1".
+=================================================================
+==15604==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7fffffffce94 at pc 0x00000043b2e9 bp 0x7fffffffcdf0 sp 0x7fffffffc5a0
+READ of size 412 at 0x7fffffffce94 thread T0
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00007ffff7073118 in ?? () from /lib64/libgcc_s.so.1
+ 
+so I got the fault now I want a back trace
+
+(gdb) bt
+#0  0x00007ffff7073118 in ?? () from /lib64/libgcc_s.so.1
+#1  0x00007ffff7074019 in _Unwind_Backtrace () from /lib64/libgcc_s.so.1
+#2  0x00000000004b8f03 in __sanitizer::BufferedStackTrace::SlowUnwindStack (this=0x7fffffffbd10, pc=4436713, max_depth=<optimized out>)
+    at ../../../../gcc-6.2.0/libsanitizer/sanitizer_common/sanitizer_unwind_linux_libcdep.cc:113
+#3  0x00000000004b4701 in __asan::GetStackTraceWithPcBpAndContext (fast=false, context=0x0, bp=140737488342512, pc=4436713, max_depth=256,
+    stack=0x7fffffffbd10) at ../../../../gcc-6.2.0/libsanitizer/asan/asan_stack.h:49
+#4  __asan::ReportGenericError (pc=<optimized out>, bp=bp@entry=140737488342512, sp=sp@entry=140737488340384, addr=addr@entry=140737488342676,
+    is_write=is_write@entry=false, access_size=access_size@entry=412, exp=<optimized out>, fatal=<optimized out>)
+    at ../../../../gcc-6.2.0/libsanitizer/asan/asan_report.cc:1092
+#5  0x000000000043b304 in __interceptor_strchr (str=<optimized out>, c=<optimized out>) at ../../../../gcc-6.2.0/libsanitizer/asan/asan_interceptors.cc:468
+#6  0x00000000004e0e81 in read_config (filename=<optimized out>) at thttpd.c:1018
+#7  0x4141414141414141 in ?? ()
+#8  0x4141414141414141 in ?? ()
+#9  0x4141414141414141 in ?? ()
+#10 0x4141414141414141 in ?? ()
+#11 0x4141414141414141 in ?? ()
+#12 0x4141414141414141 in ?? ()
+#13 0x4141414141414141 in ?? ()
+#14 0x4141414141414141 in ?? ()
+#15 0x4141414141414141 in ?? ()
+#16 0x4141414141414141 in ?? ()
+
+I then set a break point at 1018 and ran it again and my output was:
+
+Breakpoint 2, read_config (filename=<optimized out>) at thttpd.c:1018
+1018            if ( ( cp = strchr( line, '#' ) ) != (char*) 0 )
+(gdb) set disassemble-next-line on
+(gdb) si
+0x00000000004e0e77      1018            if ( ( cp = strchr( line, '#' ) ) != (char*) 0 )
+   0x00000000004e0e73 <read_config+179>:        48 8b 3c 24     mov    (%rsp),%rdi
+=> 0x00000000004e0e77 <read_config+183>:        be 23 00 00 00  mov    $0x23,%esi
+   0x00000000004e0e7c <read_config+188>:        e8 1f a6 f5 ff  callq  0x43b4a0 <__interceptor_strchr(char const*, int)>
+   0x00000000004e0e81 <read_config+193>:        48 85 c0        test   %rax,%rax
+   0x00000000004e0e84 <read_config+196>:        74 24   je     0x4e0eaa <read_config+234>
+(gdb) si
+0x00000000004e0e7c      1018            if ( ( cp = strchr( line, '#' ) ) != (char*) 0 )
+   0x00000000004e0e73 <read_config+179>:        48 8b 3c 24     mov    (%rsp),%rdi
+   0x00000000004e0e77 <read_config+183>:        be 23 00 00 00  mov    $0x23,%esi
+=> 0x00000000004e0e7c <read_config+188>:        e8 1f a6 f5 ff  callq  0x43b4a0 <__interceptor_strchr(char const*, int)>
+   0x00000000004e0e81 <read_config+193>:        48 85 c0        test   %rax,%rax
+   0x00000000004e0e84 <read_config+196>:        74 24   je     0x4e0eaa <read_config+234>
+(gdb) si
+__interceptor_strchr (str=str@entry=0x7fffffffce30 "throttles=", 'A' <repeats 190 times>..., c=c@entry=35)
+    at ../../../../gcc-6.2.0/libsanitizer/asan/asan_interceptors.cc:457
+457     ../../../../gcc-6.2.0/libsanitizer/asan/asan_interceptors.cc: No such file or directory.
+=> 0x000000000043b4a0 <__interceptor_strchr(char const*, int)+0>:       48 8d 05 b5 b7 52 00    lea    0x52b7b5(%rip),%rax 
+       # 0x966c5c <_ZN6__asan11asan_initedE>
+
+It seems this line: 
+=> 0x00000000004e0e7c <read_config+188>:        e8 1f a6 f5 ff  callq  0x43b4a0 <__interceptor_strchr(char const*, int)>
+
+this line is where the function diverges into a bunchh of address checks like <__asan_region_is_poisoned
+ which eventually leads to the addresssanitizer error message,
+
+To my knowledge addresssanitizer works by mapping memory onto 
+"shadow memory", basically the shadow reigion is the nonadressible
+areas,"poisoned areas", and will crashed when accessed
+since the part of the program in thttpd-as crashes when trying to read the
+argument in my in.txt is a string longer than the max, it overflows and
+accesses this "shadow region"
+
+7)
+now is time to test thttpd-no
+heres what I did again:
+(gdb) r -p 12771 -D -C in.txt
+Starting program: /w/home.15/class/classave/cs33/lab3/sthttpd-2.27.0/src/thttpd-no -p 12771 -D -C in.txt
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib64/libthread_db.so.1".
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000000000404a80 in read_config (filename=<optimized out>) at thttpd.c:1190
+1190        }
+
+and backtrace again:
+
+(gdb) bt
+#0  0x0000000000404a80 in read_config (filename=<optimized out>) at thttpd.c:1190
+#1  0x4141414141414141 in ?? ()
+#2  0x4141414141414141 in ?? ()
+#3  0x4141414141414141 in ?? ()
+#4  0x4141414141414141 in ?? ()
+#5  0x4141414141414141 in ?? ()
+#6  0x4141414141414141 in ?? ()
+#7  0x4141414141414141 in ?? ()
+#8  0x4141414141414141 in ?? ()
+#9  0x4141414141414141 in ?? ()
+#10 0x4141414141414141 in ?? ()
+#11 0x4141414141414141 in ?? ()
+#12 0x4141414141414141 in ?? ()
+#13 0x4141414141414141 in ?? ()
+#14 0x4141414141414141 in ?? ()
+#15 0x4141414141414141 in ?? ()
+#16 0x4141414141414141 in ?? ()
+#17 0x4141414141414141 in ?? ()
+#18 0x4141414141414141 in ?? ()
+#19 0x4141414141414141 in ?? ()
+#20 0x4141414141414141 in ?? ()
+#21 0x4141414141414141 in ?? ()
+#22 0x4141414141414141 in ?? ()
+#23 0x4141414141414141 in ?? ()
+#24 0x4141414141414141 in ?? ()
+#25 0x4141414141414141 in ?? ()
+#26 0x4141414141414141 in ?? ()
+#27 0x4141414141414141 in ?? ()
+#28 0x4141414141414141 in ?? ()
+#29 0x4141414141414141 in ?? ()
+#30 0x4141414141414141 in ?? ()
+#31 0x4141414141414141 in ?? ()
+#32 0x4141414141414141 in ?? ()
+#33 0x0000000000004141 in ?? ()
+#34 0x0000000000000000 in ?? ()
+
+I set a breakpoint at 1018 and I step through until I reached:
+
+gdb) s
+1190        }
+=> 0x0000000000404a76 <read_config+1174>:       48 83 c4 78     add    $0x78,%rsp
+   0x0000000000404a7a <read_config+1178>:       5b      pop    %rbx
+   0x0000000000404a7b <read_config+1179>:       5d      pop    %rbp
+   0x0000000000404a7c <read_config+1180>:       41 5c   pop    %r12
+   0x0000000000404a7e <read_config+1182>:       41 5d   pop    %r13
+   0x0000000000404a80 <read_config+1184>:       c3      retq
+(gdb) s
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000000000404a80 in read_config (filename=<optimized out>) at thttpd.c:1190
+1190        }
+   0x0000000000404a76 <read_config+1174>:       48 83 c4 78     add    $0x78,%rsp
+   0x0000000000404a7a <read_config+1178>:       5b      pop    %rbx
+   0x0000000000404a7b <read_config+1179>:       5d      pop    %rbp
+   0x0000000000404a7c <read_config+1180>:       41 5c   pop    %r12
+   0x0000000000404a7e <read_config+1182>:       41 5d   pop    %r13
+=> 0x0000000000404a80 <read_config+1184>:       c3      retq
+(gdb) s   0x0000000000404a80 <read_config+1184>:       c3      retq
+A syntax error in expression, near `:       c3      retq'.
+
+basically, according to the TA lecture, since there was no protection
+it basically kept going, if the address was a valid address after the 
+corruption from the overflow, it'll continue as it is until something
+goes wrong later in code, or returns, as you can see since there is no
+checking we can run an exploit
+
+8)
+This time I built a script to automate the generation
+of the assembly files, and then chmod 755 scipt.sh:
+
+#/bin/sh
+
+make clean
+
+make CFLAGS='-S -O2 -fno-inline -fstack-protector-strong'
+
+mv src/thttpd.o src/thttpd-sp.s
+
+make clean
+
+make CFLAGS='-S -O2 -fno-inline -static-libasan -fsanitize=address'
+
+mv src/thttpd.o src/thttpd-as.s
+
+make clean
+
+make CFLAGS='-S -O2 -fno-inline -fno-stack-protector -zexecstack'
+
+mv src/thttpd.o src/thttpd-no.s
+
+To make finding the diff easier
+I used the diff command:
+
+diff -u thttpd-sp.s thttpd-sp.s > sp_as.diff    (1)
+diff -u thttpd-sp.s thttpd-no.s > sp_no.diff    (2)
+diff -u thttpd-as.s thttpd-no.s > as_no.diff    (3)
+
+note: i will be using the (*) to indicate which diff file I am looking at
+
+when I looked at (1)
+I looked at the handle_read function and I saw that -as had way more
+lines of instructions than -sp, abstractly canary  checking only involves 
+checking if the canary has mutated, whereas address sanitizer uses a map to 
+check the posion and unposined areas and checks if the address is valid
+
+I looked at the (2) to check the difference between -sp and -no
+I saw almost no difference except the jump lables are different, which makes
+sense because the canary is only checked once after every call to see
+if it has been corrupted, and process as normally if not
+
+Lastly I looked at (3)
+there are alot of changes because address sanitizer needs to check
+the shadow regions for poisoned bytes wheras -no offers no protection and 
+thus proceeds whether address is valid or not
+
+9)
+first I went into gdb src/thttpd-no
+b read_config
+this sets a break point at the read_config function:
+then I
+r -p 12771 -D -C in.txt
+
+this is the immediate assembly after breaking:
+
+Dump of assembler code for function read_config:
+=> 0x00000000004045e0 <+0>:     push   %r13
+   0x00000000004045e2 <+2>:     mov    $0x40e835,%esi
+   0x00000000004045e7 <+7>:     push   %r12
+   0x00000000004045e9 <+9>:     push   %rbp
+   0x00000000004045ea <+10>:    push   %rbx
+   0x00000000004045eb <+11>:    mov    %rdi,%rbx
+   0x00000000004045ee <+14>:    sub    $0x78,%rsp
+   0x00000000004045f2 <+18>:    callq  0x402500 <fopen@plt>
+   0x00000000004045f7 <+23>:    test   %rax,%rax
+   0x00000000004045fa <+26>:    mov    %rax,%r12
+   0x00000000004045fd <+29>:    je     0x404ad9 <read_config+1273>
+   0x0000000000404603 <+35>:    mov    %r12,%rdx
+   0x0000000000404606 <+38>:    mov    $0x3e8,%esi
+   0x000000000040460b <+43>:    mov    %rsp,%rdi
+   0x000000000040460e <+46>:    callq  0x402270 <fgets@plt>
+   0x0000000000404613 <+51>:    test   %rax,%rax
+   0x0000000000404616 <+54>:    je     0x404a6e <read_config+1166>
+   0x000000000040461c <+60>:    mov    $0x23,%esi
+   0x0000000000404621 <+65>:    mov    %rsp,%rdi
+   0x0000000000404624 <+68>:    callq  0x402150 <strchr@plt>
+   0x0000000000404629 <+73>:    test   %rax,%rax
+   0x000000000040462c <+76>:    je     0x404631 <read_config+81>
+
+---Type <return> to continue, or q <return> to quit---q
+
+
+I then made a watch point and step through until the end of read_config
+
+Watchpoint 2: $rsp
+
+Old value = (void *) 0x7fffffffcfa8
+New value = (void *) 0x7fffffffcfa0
+
+Watchpoint 2: $rsp
+
+Old value = (void *) 0x7fffffffcfa0
+New value = (void *) 0x7fffffffcf98
+0x00000000004045eb in read_config (filename=0x7fffffffe5c5 "in.txt")
+   
+Watchpoint 2: $rsp
+
+Old value = (void *) 0x7fffffffcf98
+New value = (void *) 0x7fffffffcf20
+
+Watchpoint 2: $rsp
+
+Old value = (void *) 0x7fffffffcf20
+New value = (void *) 0x7fffffffcf18
+
+
+
+
+Watchpoint 2: $rsp
+
+Old value = (void *) 0x7fffffffcf18
+New value = (void *) 0x7fffffffcf10
+
+Old value = (void *) 0x7fffffffcf10
+New value = (void *) 0x7fffffffcf08
+
+the difference in rsp was 160 from the start to end above
+I'm guessing the last 8 bytes were the return address
+so really its 152 bytes until the return address
+
+I made a c program that deletes target.txt:
+notes: I learned about the unlink function on my own
+
+#include <unistd.h>
+int main()
+{
+ unlink("target.txt");
+}
+
+compiled it using:
+ 
+gcc -o delete delete.s
+gdb delete
+(gdb) b unlink
+(gdb) r
+(gdb) disass /r
+Dump of assembler code for function unlink:
+=> 0x00007ffff7b02bd0 <+0>:     b8 57 00 00 00  mov    $0x57,%eax
+   0x00007ffff7b02bd5 <+5>:     0f 05   syscall
+   0x00007ffff7b02bd7 <+7>:     48 3d 01 f0 ff ff       cmp    $0xfffffffffffff001,%rax
+   0x00007ffff7b02bdd <+13>:    73 01   jae    0x7ffff7b02be0 <unlink+16>
+   0x00007ffff7b02bdf <+15>:    c3      retq
+   0x00007ffff7b02be0 <+16>:    48 8b 0d 81 12 2d 00    mov    0x2d1281(%rip),%rcx        # 0x7ffff7dd3e68
+   0x00007ffff7b02be7 <+23>:    f7 d8   neg    %eax
+   0x00007ffff7b02be9 <+25>:    64 89 01        mov    %eax,%fs:(%rcx)
+   0x00007ffff7b02bec <+28>:    48 83 c8 ff     or     $0xffffffffffffffff,%rax
+   0x00007ffff7b02bf0 <+32>:    c3      retq
+End of assembler dump.
+
+Next I used the python script from the smashing tutorial part I, but I modified it a bit to
+generate the 152 offset using "A":
+
+#!/usr/bin/env python
+from struct import *
+
+buf = "port="
+buf +="A"*147
+f = open("check.txt", "w")
+f.write(buf)
+
+I found that rsp was offset by 152 and rbp was offset by 127
+
+I was trying to figure out how to convert the code to hex but I got stuck
+so this is what I have done so far, I know the process is modifying
+the return address then it wil excute the assembly instructions
+that will delete target.txt

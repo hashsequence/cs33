@@ -1,0 +1,15 @@
+--- ovf1.s	2016-10-24 17:30:44.770077000 -0700
++++ ovf3.s	2016-10-24 17:32:46.292214000 -0700
+@@ -6,7 +6,11 @@
+ testovf:
+ .LFB0:
+ 	.cfi_startproc
+-	xorl	%eax, %eax
++	movq	big(%rip), %rdx
++	movabsq	$9223372036854775807, %rax
++	addq	%rdx, %rax
++	cmpq	%rax, %rdx
++	setg	%al
+ 	ret
+ 	.cfi_endproc
+ .LFE0:

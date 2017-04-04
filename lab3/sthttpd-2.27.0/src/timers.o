@@ -1,0 +1,842 @@
+	.file	"timers.c"
+	.text
+	.p2align 4,,15
+	.type	l_add, @function
+l_add:
+.LFB3:
+	.cfi_startproc
+	movslq	64(%rdi), %rax
+	movq	timers(,%rax,8), %r8
+	testq	%r8, %r8
+	je	.L15
+	movq	32(%rdi), %rsi
+	cmpq	32(%r8), %rsi
+	jl	.L4
+	je	.L16
+.L5:
+	movq	56(%r8), %rdx
+	testq	%rdx, %rdx
+	je	.L12
+	movq	32(%rdx), %rcx
+	cmpq	%rcx, %rsi
+	jge	.L9
+	jmp	.L13
+	.p2align 4,,10
+	.p2align 3
+.L10:
+	movq	56(%rdx), %rax
+	testq	%rax, %rax
+	je	.L6
+	movq	32(%rax), %rcx
+	movq	%rdx, %r8
+	cmpq	%rcx, %rsi
+	jl	.L7
+	movq	%rax, %rdx
+.L9:
+	cmpq	%rcx, %rsi
+	jne	.L10
+	movq	40(%rdx), %rax
+	cmpq	%rax, 40(%rdi)
+	jg	.L10
+.L13:
+	movq	%rdx, %rax
+	movq	%r8, %rdx
+.L7:
+	movq	%rdi, 56(%rdx)
+	movq	%rdx, 48(%rdi)
+	movq	%rax, 56(%rdi)
+	movq	%rdi, 48(%rax)
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L16:
+	movq	40(%r8), %rcx
+	cmpq	%rcx, 40(%rdi)
+	jg	.L5
+.L4:
+	movq	$0, 48(%rdi)
+	movq	%r8, 56(%rdi)
+	movq	%rdi, timers(,%rax,8)
+	movq	%rdi, 48(%r8)
+	ret
+.L12:
+	movq	%r8, %rdx
+.L6:
+	movq	%rdi, 56(%rdx)
+	movq	%rdx, 48(%rdi)
+	movq	$0, 56(%rdi)
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L15:
+	movq	%rdi, timers(,%rax,8)
+	movq	$0, 56(%rdi)
+	movq	$0, 48(%rdi)
+	ret
+	.cfi_endproc
+.LFE3:
+	.size	l_add, .-l_add
+	.p2align 4,,15
+	.type	l_remove, @function
+l_remove:
+.LFB4:
+	.cfi_startproc
+	movq	48(%rdi), %rax
+	movq	56(%rdi), %rdx
+	testq	%rax, %rax
+	je	.L24
+	movq	%rdx, 56(%rax)
+	movq	56(%rdi), %rdx
+.L19:
+	testq	%rdx, %rdx
+	je	.L17
+	movq	%rax, 48(%rdx)
+.L17:
+	rep ret
+	.p2align 4,,10
+	.p2align 3
+.L24:
+	movslq	64(%rdi), %rcx
+	movq	%rdx, timers(,%rcx,8)
+	jmp	.L19
+	.cfi_endproc
+.LFE4:
+	.size	l_remove, .-l_remove
+	.p2align 4,,15
+	.type	hash.isra.0, @function
+hash.isra.0:
+.LFB17:
+	.cfi_startproc
+	xorl	%edi, %esi
+	movl	$128207979, %edx
+	movl	%esi, %eax
+	mull	%edx
+	movl	%edx, %eax
+	shrl	%eax
+	imull	$67, %eax, %eax
+	subl	%eax, %esi
+	movl	%esi, %eax
+	ret
+	.cfi_endproc
+.LFE17:
+	.size	hash.isra.0, .-hash.isra.0
+	.p2align 4,,15
+	.type	l_resort, @function
+l_resort:
+.LFB5:
+	.cfi_startproc
+	movq	%rdi, %r8
+	call	l_remove
+	movq	40(%rdi), %rsi
+	movq	32(%rdi), %rdi
+	call	hash.isra.0
+	movl	%eax, 64(%r8)
+	movq	%r8, %rdi
+	jmp	l_add
+	.cfi_endproc
+.LFE5:
+	.size	l_resort, .-l_resort
+	.p2align 4,,15
+	.globl	tmr_init
+	.type	tmr_init, @function
+tmr_init:
+.LFB6:
+	.cfi_startproc
+	subq	$40, %rsp
+	.cfi_def_cfa_offset 48
+	movl	$timers, %eax
+	.p2align 4,,10
+	.p2align 3
+.L28:
+	movq	$0, (%rax)
+	addq	$8, %rax
+	cmpq	$timers+536, %rax
+	jne	.L28
+	movq	%rsp, %rsi
+	movl	$1, %edi
+	movq	$0, free_timers(%rip)
+	movl	$0, free_count(%rip)
+	movl	$0, active_count(%rip)
+	movl	$0, alloc_count(%rip)
+	call	clock_gettime
+	testl	%eax, %eax
+	je	.L34
+.L27:
+	addq	$40, %rsp
+	.cfi_remember_state
+	.cfi_def_cfa_offset 8
+	ret
+.L34:
+	.cfi_restore_state
+	leaq	16(%rsp), %rdi
+	xorl	%esi, %esi
+	movl	$1, use_monotonic(%rip)
+	call	gettimeofday
+	movq	8(%rsp), %rcx
+	movabsq	$2361183241434822607, %rdx
+	movq	%rcx, %rax
+	sarq	$63, %rcx
+	imulq	%rdx
+	movq	24(%rsp), %rax
+	sarq	$7, %rdx
+	subq	%rcx, %rdx
+	movq	16(%rsp), %rcx
+	subq	(%rsp), %rcx
+	subq	%rdx, %rax
+	testq	%rax, %rax
+	movq	%rax, tv_diff+8(%rip)
+	movq	%rcx, tv_diff(%rip)
+	jns	.L27
+	subq	$1, %rcx
+	addq	$1000000, %rax
+	movq	%rcx, tv_diff(%rip)
+	movq	%rax, tv_diff+8(%rip)
+	addq	$40, %rsp
+	.cfi_def_cfa_offset 8
+	ret
+	.cfi_endproc
+.LFE6:
+	.size	tmr_init, .-tmr_init
+	.p2align 4,,15
+	.globl	tmr_mstimeout
+	.type	tmr_mstimeout, @function
+tmr_mstimeout:
+.LFB9:
+	.cfi_startproc
+	movl	$timers, %esi
+	movl	$timers+536, %r10d
+	xorl	%r9d, %r9d
+	xorl	%r8d, %r8d
+	movabsq	$2361183241434822607, %r11
+	.p2align 4,,10
+	.p2align 3
+.L49:
+	movq	(%rsi), %rax
+	testq	%rax, %rax
+	je	.L58
+	pushq	%rbx
+	.cfi_def_cfa_offset 16
+	.cfi_offset 3, -16
+	jmp	.L50
+	.p2align 4,,10
+	.p2align 3
+.L60:
+	movl	%r8d, %eax
+	movl	$1, %r8d
+	xorl	$1, %eax
+	testb	%al, %al
+	jne	.L42
+.L36:
+	addq	$8, %rsi
+	cmpq	%rsi, %r10
+	je	.L59
+.L38:
+	movq	(%rsi), %rax
+	testq	%rax, %rax
+	je	.L36
+.L50:
+	movq	40(%rax), %rcx
+	subq	8(%rdi), %rcx
+	movq	32(%rax), %rdx
+	subq	(%rdi), %rdx
+	movq	%rcx, %rax
+	sarq	$63, %rcx
+	imulq	$1000, %rdx, %rbx
+	imulq	%r11
+	sarq	$7, %rdx
+	subq	%rcx, %rdx
+	addq	%rbx, %rdx
+	cmpq	%r9, %rdx
+	jge	.L60
+.L42:
+	addq	$8, %rsi
+	movq	%rdx, %r9
+	movl	$1, %r8d
+	cmpq	%rsi, %r10
+	jne	.L38
+.L59:
+	testl	%r8d, %r8d
+	je	.L41
+	testq	%r9, %r9
+	movl	$0, %eax
+	cmovns	%r9, %rax
+	popq	%rbx
+	.cfi_restore 3
+	.cfi_def_cfa_offset 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L58:
+	addq	$8, %rsi
+	cmpq	%rsi, %r10
+	jne	.L49
+	testl	%r8d, %r8d
+	je	.L53
+	testq	%r9, %r9
+	movl	$0, %eax
+	cmovns	%r9, %rax
+	ret
+.L41:
+	.cfi_def_cfa_offset 16
+	.cfi_offset 3, -16
+	movq	$-1, %rax
+	popq	%rbx
+	.cfi_restore 3
+	.cfi_def_cfa_offset 8
+	ret
+.L53:
+	movq	$-1, %rax
+	ret
+	.cfi_endproc
+.LFE9:
+	.size	tmr_mstimeout, .-tmr_mstimeout
+	.p2align 4,,15
+	.globl	tmr_timeout
+	.type	tmr_timeout, @function
+tmr_timeout:
+.LFB8:
+	.cfi_startproc
+	call	tmr_mstimeout
+	cmpq	$-1, %rax
+	movq	%rax, %rcx
+	je	.L63
+	movabsq	$2361183241434822607, %rdx
+	imulq	%rdx
+	movq	%rcx, %rax
+	sarq	$63, %rax
+	sarq	$7, %rdx
+	subq	%rax, %rdx
+	movl	$timeout.2987, %eax
+	movq	%rdx, timeout.2987(%rip)
+	imulq	$1000, %rdx, %rdx
+	subq	%rdx, %rcx
+	imulq	$1000, %rcx, %rcx
+	movq	%rcx, timeout.2987+8(%rip)
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L63:
+	xorl	%eax, %eax
+	ret
+	.cfi_endproc
+.LFE8:
+	.size	tmr_timeout, .-tmr_timeout
+	.p2align 4,,15
+	.globl	tmr_reset
+	.type	tmr_reset, @function
+tmr_reset:
+.LFB11:
+	.cfi_startproc
+	movq	(%rdi), %rax
+	movq	8(%rdi), %rdx
+	movq	16(%rsi), %rcx
+	movq	%rdx, 40(%rsi)
+	movq	%rax, %rdi
+	movabsq	$2361183241434822607, %rdx
+	movq	%rcx, %rax
+	imulq	%rdx
+	movq	%rcx, %rax
+	sarq	$63, %rax
+	sarq	$7, %rdx
+	subq	%rax, %rdx
+	addq	%rdx, %rdi
+	imulq	$1000, %rdx, %rdx
+	movq	%rdi, 32(%rsi)
+	subq	%rdx, %rcx
+	imulq	$1000, %rcx, %rcx
+	addq	40(%rsi), %rcx
+	cmpq	$999999, %rcx
+	movq	%rcx, 40(%rsi)
+	jle	.L65
+	movq	%rcx, %rax
+	movabsq	$4835703278458516699, %rdx
+	imulq	%rdx
+	movq	%rcx, %rax
+	sarq	$63, %rax
+	sarq	$18, %rdx
+	subq	%rax, %rdx
+	addq	%rdx, %rdi
+	imulq	$1000000, %rdx, %rdx
+	movq	%rdi, 32(%rsi)
+	subq	%rdx, %rcx
+	movq	%rcx, 40(%rsi)
+.L65:
+	movq	%rsi, %rdi
+	jmp	l_resort
+	.cfi_endproc
+.LFE11:
+	.size	tmr_reset, .-tmr_reset
+	.p2align 4,,15
+	.globl	tmr_cancel
+	.type	tmr_cancel, @function
+tmr_cancel:
+.LFB12:
+	.cfi_startproc
+	call	l_remove
+	movq	free_timers(%rip), %rax
+	subl	$1, active_count(%rip)
+	movq	%rdi, free_timers(%rip)
+	addl	$1, free_count(%rip)
+	movq	$0, 48(%rdi)
+	movq	%rax, 56(%rdi)
+	ret
+	.cfi_endproc
+.LFE12:
+	.size	tmr_cancel, .-tmr_cancel
+	.p2align 4,,15
+	.globl	tmr_run
+	.type	tmr_run, @function
+tmr_run:
+.LFB10:
+	.cfi_startproc
+	pushq	%r15
+	.cfi_def_cfa_offset 16
+	.cfi_offset 15, -16
+	pushq	%r14
+	.cfi_def_cfa_offset 24
+	.cfi_offset 14, -24
+	movl	$timers, %r14d
+	pushq	%r13
+	.cfi_def_cfa_offset 32
+	.cfi_offset 13, -32
+	pushq	%r12
+	.cfi_def_cfa_offset 40
+	.cfi_offset 12, -40
+	movabsq	$4835703278458516699, %r13
+	pushq	%rbp
+	.cfi_def_cfa_offset 48
+	.cfi_offset 6, -48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	.cfi_offset 3, -56
+	movq	%rdi, %rbp
+	movabsq	$2361183241434822607, %r12
+	subq	$8, %rsp
+	.cfi_def_cfa_offset 64
+	.p2align 4,,10
+	.p2align 3
+.L69:
+	movq	(%r14), %rbx
+	testq	%rbx, %rbx
+	je	.L71
+	movq	32(%rbx), %rdx
+	movq	0(%rbp), %rax
+	movq	56(%rbx), %r15
+	cmpq	%rax, %rdx
+	jle	.L73
+	jmp	.L71
+	.p2align 4,,10
+	.p2align 3
+.L83:
+	movq	16(%rbx), %rcx
+	movq	%rcx, %rax
+	imulq	%r12
+	movq	%rcx, %rax
+	sarq	$63, %rax
+	sarq	$7, %rdx
+	subq	%rax, %rdx
+	movq	%rdx, %rsi
+	addq	32(%rbx), %rsi
+	imulq	$1000, %rdx, %rdx
+	movq	%rsi, 32(%rbx)
+	subq	%rdx, %rcx
+	imulq	$1000, %rcx, %rcx
+	addq	40(%rbx), %rcx
+	cmpq	$999999, %rcx
+	movq	%rcx, 40(%rbx)
+	jle	.L76
+	movq	%rcx, %rax
+	imulq	%r13
+	movq	%rcx, %rax
+	sarq	$63, %rax
+	sarq	$18, %rdx
+	subq	%rax, %rdx
+	addq	%rdx, %rsi
+	imulq	$1000000, %rdx, %rdx
+	movq	%rsi, 32(%rbx)
+	subq	%rdx, %rcx
+	movq	%rcx, 40(%rbx)
+.L76:
+	movq	%rbx, %rdi
+	call	l_resort
+	testq	%r15, %r15
+	je	.L71
+.L78:
+	movq	32(%r15), %rdx
+	movq	0(%rbp), %rax
+	movq	%r15, %rbx
+	movq	56(%r15), %rcx
+	cmpq	%rax, %rdx
+	jg	.L71
+	movq	%rcx, %r15
+.L73:
+	cmpq	%rdx, %rax
+	jne	.L74
+	movq	8(%rbp), %rax
+	cmpq	%rax, 40(%rbx)
+	jg	.L71
+.L74:
+	movq	8(%rbx), %rdi
+	movq	%rbp, %rsi
+	call	*(%rbx)
+	movl	24(%rbx), %eax
+	testl	%eax, %eax
+	jne	.L83
+	movq	%rbx, %rdi
+	call	tmr_cancel
+	testq	%r15, %r15
+	jne	.L78
+	.p2align 4,,10
+	.p2align 3
+.L71:
+	addq	$8, %r14
+	cmpq	$timers+536, %r14
+	jne	.L69
+	addq	$8, %rsp
+	.cfi_def_cfa_offset 56
+	popq	%rbx
+	.cfi_def_cfa_offset 48
+	popq	%rbp
+	.cfi_def_cfa_offset 40
+	popq	%r12
+	.cfi_def_cfa_offset 32
+	popq	%r13
+	.cfi_def_cfa_offset 24
+	popq	%r14
+	.cfi_def_cfa_offset 16
+	popq	%r15
+	.cfi_def_cfa_offset 8
+	ret
+	.cfi_endproc
+.LFE10:
+	.size	tmr_run, .-tmr_run
+	.p2align 4,,15
+	.globl	tmr_cleanup
+	.type	tmr_cleanup, @function
+tmr_cleanup:
+.LFB13:
+	.cfi_startproc
+	movq	free_timers(%rip), %rdi
+	testq	%rdi, %rdi
+	je	.L93
+	movl	free_count(%rip), %eax
+	pushq	%r12
+	.cfi_def_cfa_offset 16
+	.cfi_offset 12, -16
+	movl	alloc_count(%rip), %r12d
+	pushq	%rbp
+	.cfi_def_cfa_offset 24
+	.cfi_offset 6, -24
+	pushq	%rbx
+	.cfi_def_cfa_offset 32
+	.cfi_offset 3, -32
+	leal	-1(%rax), %ebx
+	subl	%eax, %r12d
+	.p2align 4,,10
+	.p2align 3
+.L86:
+	movq	56(%rdi), %rbp
+	movl	%ebx, free_count(%rip)
+	movq	%rbp, free_timers(%rip)
+	call	free
+	leal	(%r12,%rbx), %eax
+	subl	$1, %ebx
+	testq	%rbp, %rbp
+	movq	%rbp, %rdi
+	movl	%eax, alloc_count(%rip)
+	jne	.L86
+	popq	%rbx
+	.cfi_restore 3
+	.cfi_def_cfa_offset 24
+	popq	%rbp
+	.cfi_restore 6
+	.cfi_def_cfa_offset 16
+	popq	%r12
+	.cfi_restore 12
+	.cfi_def_cfa_offset 8
+.L93:
+	rep ret
+	.cfi_endproc
+.LFE13:
+	.size	tmr_cleanup, .-tmr_cleanup
+	.p2align 4,,15
+	.globl	tmr_destroy
+	.type	tmr_destroy, @function
+tmr_destroy:
+.LFB14:
+	.cfi_startproc
+	movl	$timers, %esi
+.L103:
+	movq	(%rsi), %rdi
+	testq	%rdi, %rdi
+	je	.L111
+	subq	$8, %rsp
+	.cfi_def_cfa_offset 16
+	.p2align 4,,10
+	.p2align 3
+.L100:
+	call	tmr_cancel
+.L109:
+	movq	(%rsi), %rdi
+	testq	%rdi, %rdi
+	jne	.L100
+	addq	$8, %rsi
+	cmpq	$timers+536, %rsi
+	jne	.L109
+	addq	$8, %rsp
+	.cfi_def_cfa_offset 8
+	jmp	tmr_cleanup
+.L111:
+	addq	$8, %rsi
+	cmpq	$timers+536, %rsi
+	jne	.L103
+	jmp	tmr_cleanup
+	.cfi_endproc
+.LFE14:
+	.size	tmr_destroy, .-tmr_destroy
+	.section	.rodata.str1.8,"aMS",@progbits,1
+	.align 8
+.LC0:
+	.string	"  timers - %d allocated, %d active, %d free"
+	.section	.rodata.str1.1,"aMS",@progbits,1
+.LC1:
+	.string	"timer counts don't add up!"
+	.text
+	.p2align 4,,15
+	.globl	tmr_logstats
+	.type	tmr_logstats, @function
+tmr_logstats:
+.LFB15:
+	.cfi_startproc
+	subq	$8, %rsp
+	.cfi_def_cfa_offset 16
+	movl	free_count(%rip), %r8d
+	movl	active_count(%rip), %ecx
+	movl	alloc_count(%rip), %edx
+	xorl	%eax, %eax
+	movl	$.LC0, %esi
+	movl	$6, %edi
+	call	syslog
+	movl	free_count(%rip), %eax
+	addl	active_count(%rip), %eax
+	cmpl	alloc_count(%rip), %eax
+	je	.L112
+	movl	$.LC1, %esi
+	movl	$3, %edi
+	xorl	%eax, %eax
+	addq	$8, %rsp
+	.cfi_remember_state
+	.cfi_def_cfa_offset 8
+	jmp	syslog
+	.p2align 4,,10
+	.p2align 3
+.L112:
+	.cfi_restore_state
+	addq	$8, %rsp
+	.cfi_def_cfa_offset 8
+	ret
+	.cfi_endproc
+.LFE15:
+	.size	tmr_logstats, .-tmr_logstats
+	.section	.rodata.str1.1
+.LC2:
+	.string	"clock_gettime"
+	.text
+	.p2align 4,,15
+	.globl	tmr_prepare_timeval
+	.type	tmr_prepare_timeval, @function
+tmr_prepare_timeval:
+.LFB16:
+	.cfi_startproc
+	pushq	%rbx
+	.cfi_def_cfa_offset 16
+	.cfi_offset 3, -16
+	movq	%rdi, %rbx
+	subq	$16, %rsp
+	.cfi_def_cfa_offset 32
+	movl	use_monotonic(%rip), %eax
+	testl	%eax, %eax
+	je	.L116
+	movq	%rsp, %rsi
+	movl	$1, %edi
+	call	clock_gettime
+	testl	%eax, %eax
+	js	.L121
+	movq	8(%rsp), %rcx
+	movabsq	$2361183241434822607, %rdx
+	movq	%rcx, %rax
+	sarq	$63, %rcx
+	imulq	%rdx
+	movq	tv_diff(%rip), %rax
+	addq	(%rsp), %rax
+	sarq	$7, %rdx
+	movq	%rax, (%rbx)
+	subq	%rcx, %rdx
+	addq	tv_diff+8(%rip), %rdx
+	cmpq	$999999, %rdx
+	movq	%rdx, 8(%rbx)
+	jle	.L115
+	addq	$1, %rax
+	subq	$1000000, %rdx
+	movq	%rax, (%rbx)
+	movq	%rdx, 8(%rbx)
+	addq	$16, %rsp
+	.cfi_remember_state
+	.cfi_def_cfa_offset 16
+	popq	%rbx
+	.cfi_def_cfa_offset 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L116:
+	.cfi_restore_state
+	xorl	%esi, %esi
+	call	gettimeofday
+.L115:
+	addq	$16, %rsp
+	.cfi_remember_state
+	.cfi_def_cfa_offset 16
+	popq	%rbx
+	.cfi_def_cfa_offset 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L121:
+	.cfi_restore_state
+	movl	$.LC2, %edi
+	call	perror
+	jmp	.L115
+	.cfi_endproc
+.LFE16:
+	.size	tmr_prepare_timeval, .-tmr_prepare_timeval
+	.p2align 4,,15
+	.globl	tmr_create
+	.type	tmr_create, @function
+tmr_create:
+.LFB7:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	pushq	%rbx
+	.cfi_def_cfa_offset 24
+	.cfi_offset 3, -24
+	movq	%rdi, %rbp
+	subq	$40, %rsp
+	.cfi_def_cfa_offset 64
+	movq	free_timers(%rip), %rbx
+	testq	%rbx, %rbx
+	je	.L123
+	movq	56(%rbx), %rax
+	subl	$1, free_count(%rip)
+	movq	%rax, free_timers(%rip)
+.L124:
+	testq	%rbp, %rbp
+	movq	%rsi, (%rbx)
+	movq	%rdx, 8(%rbx)
+	movq	%rcx, 16(%rbx)
+	movl	%r8d, 24(%rbx)
+	je	.L126
+	movq	0(%rbp), %rax
+	movq	8(%rbp), %rdx
+	movq	%rax, 32(%rbx)
+	movq	%rdx, 40(%rbx)
+.L127:
+	movq	%rcx, %rax
+	movabsq	$2361183241434822607, %rdx
+	imulq	%rdx
+	movq	%rcx, %rax
+	sarq	$63, %rax
+	sarq	$7, %rdx
+	subq	%rax, %rdx
+	movq	%rdx, %rdi
+	addq	32(%rbx), %rdi
+	imulq	$1000, %rdx, %rdx
+	movq	%rdi, 32(%rbx)
+	subq	%rdx, %rcx
+	imulq	$1000, %rcx, %rsi
+	addq	40(%rbx), %rsi
+	cmpq	$999999, %rsi
+	movq	%rsi, 40(%rbx)
+	jg	.L133
+.L128:
+	call	hash.isra.0
+	movq	%rbx, %rdi
+	movl	%eax, 64(%rbx)
+	call	l_add
+	addl	$1, active_count(%rip)
+.L122:
+	addq	$40, %rsp
+	.cfi_remember_state
+	.cfi_def_cfa_offset 24
+	movq	%rbx, %rax
+	popq	%rbx
+	.cfi_def_cfa_offset 16
+	popq	%rbp
+	.cfi_def_cfa_offset 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L133:
+	.cfi_restore_state
+	movq	%rsi, %rax
+	movabsq	$4835703278458516699, %rdx
+	imulq	%rdx
+	movq	%rsi, %rax
+	sarq	$63, %rax
+	sarq	$18, %rdx
+	subq	%rax, %rdx
+	addq	%rdx, %rdi
+	imulq	$1000000, %rdx, %rdx
+	movq	%rdi, 32(%rbx)
+	subq	%rdx, %rsi
+	movq	%rsi, 40(%rbx)
+	jmp	.L128
+	.p2align 4,,10
+	.p2align 3
+.L123:
+	movl	$72, %edi
+	movl	%r8d, 28(%rsp)
+	movq	%rcx, 16(%rsp)
+	movq	%rdx, 8(%rsp)
+	movq	%rsi, (%rsp)
+	call	malloc
+	testq	%rax, %rax
+	movq	%rax, %rbx
+	je	.L122
+	addl	$1, alloc_count(%rip)
+	movl	28(%rsp), %r8d
+	movq	16(%rsp), %rcx
+	movq	8(%rsp), %rdx
+	movq	(%rsp), %rsi
+	jmp	.L124
+	.p2align 4,,10
+	.p2align 3
+.L126:
+	leaq	32(%rbx), %rdi
+	movq	%rcx, (%rsp)
+	call	tmr_prepare_timeval
+	movq	(%rsp), %rcx
+	jmp	.L127
+	.cfi_endproc
+.LFE7:
+	.size	tmr_create, .-tmr_create
+	.local	timeout.2987
+	.comm	timeout.2987,16,16
+	.local	tv_diff
+	.comm	tv_diff,16,16
+	.local	use_monotonic
+	.comm	use_monotonic,4,4
+	.comm	JunkClientData,8,8
+	.local	free_count
+	.comm	free_count,4,4
+	.local	active_count
+	.comm	active_count,4,4
+	.local	alloc_count
+	.comm	alloc_count,4,4
+	.local	free_timers
+	.comm	free_timers,8,8
+	.local	timers
+	.comm	timers,536,32
+	.ident	"GCC: (GNU) 6.2.0"
+	.section	.note.GNU-stack,"",@progbits

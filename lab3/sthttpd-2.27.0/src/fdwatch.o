@@ -1,0 +1,675 @@
+	.file	"fdwatch.c"
+	.text
+	.p2align 4,,15
+	.type	poll_init, @function
+poll_init:
+.LFB9:
+	.cfi_startproc
+	pushq	%r13
+	.cfi_def_cfa_offset 16
+	.cfi_offset 13, -16
+	movslq	%edi, %r13
+	pushq	%r12
+	.cfi_def_cfa_offset 24
+	.cfi_offset 12, -24
+	pushq	%rbp
+	.cfi_def_cfa_offset 32
+	.cfi_offset 6, -32
+	pushq	%rbx
+	.cfi_def_cfa_offset 40
+	.cfi_offset 3, -40
+	leaq	0(,%r13,8), %rdi
+	movq	%r13, %r12
+	salq	$2, %r13
+	subq	$8, %rsp
+	.cfi_def_cfa_offset 48
+	call	malloc
+	movq	%r13, %rdi
+	movq	%rax, %rbx
+	movq	%rax, pollfds(%rip)
+	call	malloc
+	movq	%r13, %rdi
+	movq	%rax, %rbp
+	movq	%rax, poll_fdidx(%rip)
+	call	malloc
+	testq	%rbp, %rbp
+	movq	%rax, poll_rfdidx(%rip)
+	sete	%cl
+	testq	%rbx, %rbx
+	sete	%dl
+	orb	%dl, %cl
+	jne	.L6
+	testq	%rax, %rax
+	je	.L6
+	xorl	%eax, %eax
+	testl	%r12d, %r12d
+	jle	.L5
+	.p2align 4,,10
+	.p2align 3
+.L7:
+	movl	$-1, 0(%rbp,%rax,4)
+	movl	$-1, (%rbx,%rax,8)
+	addq	$1, %rax
+	cmpl	%eax, %r12d
+	jg	.L7
+.L5:
+	xorl	%eax, %eax
+.L1:
+	addq	$8, %rsp
+	.cfi_remember_state
+	.cfi_def_cfa_offset 40
+	popq	%rbx
+	.cfi_def_cfa_offset 32
+	popq	%rbp
+	.cfi_def_cfa_offset 24
+	popq	%r12
+	.cfi_def_cfa_offset 16
+	popq	%r13
+	.cfi_def_cfa_offset 8
+	ret
+.L6:
+	.cfi_restore_state
+	movl	$-1, %eax
+	jmp	.L1
+	.cfi_endproc
+.LFE9:
+	.size	poll_init, .-poll_init
+	.section	.rodata.str1.1,"aMS",@progbits,1
+.LC0:
+	.string	"too many fds in poll_add_fd!"
+	.text
+	.p2align 4,,15
+	.type	poll_add_fd, @function
+poll_add_fd:
+.LFB10:
+	.cfi_startproc
+	movl	npoll_fds(%rip), %eax
+	cmpl	nfiles(%rip), %eax
+	jge	.L16
+	movq	pollfds(%rip), %rcx
+	movslq	%eax, %rdx
+	testl	%esi, %esi
+	leaq	(%rcx,%rdx,8), %rdx
+	movl	%edi, (%rdx)
+	je	.L14
+	cmpl	$1, %esi
+	jne	.L13
+	movl	$4, %ecx
+	movw	%cx, 4(%rdx)
+.L13:
+	movq	poll_fdidx(%rip), %rdx
+	movslq	%edi, %rdi
+	movl	%eax, (%rdx,%rdi,4)
+	addl	$1, %eax
+	movl	%eax, npoll_fds(%rip)
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L14:
+	movl	$1, %esi
+	movw	%si, 4(%rdx)
+	jmp	.L13
+	.p2align 4,,10
+	.p2align 3
+.L16:
+	movl	$.LC0, %esi
+	movl	$3, %edi
+	xorl	%eax, %eax
+	jmp	syslog
+	.cfi_endproc
+.LFE10:
+	.size	poll_add_fd, .-poll_add_fd
+	.section	.rodata.str1.1
+.LC1:
+	.string	"bad idx (%d) in poll_del_fd!"
+	.text
+	.p2align 4,,15
+	.type	poll_del_fd, @function
+poll_del_fd:
+.LFB11:
+	.cfi_startproc
+	movq	poll_fdidx(%rip), %rsi
+	movslq	%edi, %rdi
+	leaq	(%rsi,%rdi,4), %rcx
+	movl	(%rcx), %edx
+	testl	%edx, %edx
+	js	.L18
+	cmpl	nfiles(%rip), %edx
+	jge	.L18
+	movl	npoll_fds(%rip), %eax
+	movq	pollfds(%rip), %r8
+	movslq	%edx, %r9
+	subl	$1, %eax
+	movl	%eax, npoll_fds(%rip)
+	cltq
+	leaq	(%r8,%rax,8), %rdi
+	movq	(%rdi), %rax
+	movq	%rax, (%r8,%r9,8)
+	cltq
+	movl	%edx, (%rsi,%rax,4)
+	movl	$-1, (%rdi)
+	movl	$-1, (%rcx)
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L18:
+	movl	$.LC1, %esi
+	movl	$3, %edi
+	xorl	%eax, %eax
+	jmp	syslog
+	.cfi_endproc
+.LFE11:
+	.size	poll_del_fd, .-poll_del_fd
+	.section	.rodata.str1.8,"aMS",@progbits,1
+	.align 8
+.LC2:
+	.string	"bad fdidx (%d) in poll_check_fd!"
+	.text
+	.p2align 4,,15
+	.type	poll_check_fd, @function
+poll_check_fd:
+.LFB13:
+	.cfi_startproc
+	movq	poll_fdidx(%rip), %rax
+	movslq	%edi, %rdi
+	movslq	(%rax,%rdi,4), %rdx
+	testl	%edx, %edx
+	js	.L21
+	cmpl	nfiles(%rip), %edx
+	jge	.L21
+	movq	pollfds(%rip), %rax
+	movzwl	6(%rax,%rdx,8), %edx
+	xorl	%eax, %eax
+	testb	$8, %dl
+	jne	.L31
+	movq	fd_rw(%rip), %rcx
+	movl	(%rcx,%rdi,4), %ecx
+	testl	%ecx, %ecx
+	je	.L24
+	andl	$52, %edx
+	cmpl	$1, %ecx
+	cmove	%edx, %eax
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L21:
+	subq	$8, %rsp
+	.cfi_def_cfa_offset 16
+	xorl	%eax, %eax
+	movl	$.LC2, %esi
+	movl	$3, %edi
+	call	syslog
+	addq	$8, %rsp
+	.cfi_def_cfa_offset 8
+	xorl	%eax, %eax
+.L31:
+	rep ret
+	.p2align 4,,10
+	.p2align 3
+.L24:
+	movl	%edx, %eax
+	andl	$49, %eax
+	ret
+	.cfi_endproc
+.LFE13:
+	.size	poll_check_fd, .-poll_check_fd
+	.section	.rodata.str1.1
+.LC3:
+	.string	"bad ridx (%d) in poll_get_fd!"
+	.text
+	.p2align 4,,15
+	.type	poll_get_fd, @function
+poll_get_fd:
+.LFB14:
+	.cfi_startproc
+	testl	%edi, %edi
+	js	.L33
+	cmpl	nfiles(%rip), %edi
+	jge	.L33
+	movq	poll_rfdidx(%rip), %rax
+	movslq	%edi, %rdi
+	movl	(%rax,%rdi,4), %eax
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L33:
+	subq	$8, %rsp
+	.cfi_def_cfa_offset 16
+	movl	%edi, %edx
+	xorl	%eax, %eax
+	movl	$.LC3, %esi
+	movl	$3, %edi
+	call	syslog
+	movl	$-1, %eax
+	addq	$8, %rsp
+	.cfi_def_cfa_offset 8
+	ret
+	.cfi_endproc
+.LFE14:
+	.size	poll_get_fd, .-poll_get_fd
+	.p2align 4,,15
+	.type	poll_watch, @function
+poll_watch:
+.LFB12:
+	.cfi_startproc
+	subq	$8, %rsp
+	.cfi_def_cfa_offset 16
+	movslq	npoll_fds(%rip), %rsi
+	movl	%edi, %edx
+	movq	pollfds(%rip), %rdi
+	call	poll
+	testl	%eax, %eax
+	jle	.L45
+	movl	npoll_fds(%rip), %ecx
+	testl	%ecx, %ecx
+	jle	.L44
+	movq	pollfds(%rip), %rdx
+	movq	poll_rfdidx(%rip), %r9
+	subl	$1, %ecx
+	leaq	8(%rdx,%rcx,8), %rdi
+	xorl	%ecx, %ecx
+	.p2align 4,,10
+	.p2align 3
+.L42:
+	testb	$61, 6(%rdx)
+	je	.L41
+	leal	1(%rcx), %esi
+	movl	(%rdx), %r8d
+	cmpl	%esi, %eax
+	movl	%r8d, (%r9,%rcx,4)
+	je	.L45
+	movslq	%esi, %rcx
+.L41:
+	addq	$8, %rdx
+	cmpq	%rdi, %rdx
+	jne	.L42
+.L39:
+	movl	%ecx, %eax
+	addq	$8, %rsp
+	.cfi_remember_state
+	.cfi_def_cfa_offset 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L45:
+	.cfi_restore_state
+	movl	%eax, %ecx
+	addq	$8, %rsp
+	.cfi_remember_state
+	.cfi_def_cfa_offset 8
+	movl	%ecx, %eax
+	ret
+.L44:
+	.cfi_restore_state
+	xorl	%ecx, %ecx
+	jmp	.L39
+	.cfi_endproc
+.LFE12:
+	.size	poll_watch, .-poll_watch
+	.p2align 4,,15
+	.globl	fdwatch_get_nfiles
+	.type	fdwatch_get_nfiles, @function
+fdwatch_get_nfiles:
+.LFB2:
+	.cfi_startproc
+	pushq	%r12
+	.cfi_def_cfa_offset 16
+	.cfi_offset 12, -16
+	pushq	%rbp
+	.cfi_def_cfa_offset 24
+	.cfi_offset 6, -24
+	pushq	%rbx
+	.cfi_def_cfa_offset 32
+	.cfi_offset 3, -32
+	subq	$16, %rsp
+	.cfi_def_cfa_offset 48
+	call	getdtablesize
+	movq	%rsp, %rsi
+	movl	$7, %edi
+	movl	%eax, %ebp
+	movl	%eax, nfiles(%rip)
+	call	getrlimit
+	testl	%eax, %eax
+	jne	.L52
+	movq	8(%rsp), %rdx
+	movq	(%rsp), %rax
+	cmpq	$-1, %rdx
+	movl	%eax, %ebp
+	movl	%eax, nfiles(%rip)
+	je	.L67
+	cmpq	%rdx, %rax
+	jb	.L68
+.L54:
+	movq	%rsp, %rsi
+	movl	$7, %edi
+	call	setrlimit
+	testl	%eax, %eax
+	jne	.L52
+	movq	(%rsp), %rax
+	movl	%eax, %ebp
+	movl	%eax, nfiles(%rip)
+.L52:
+	movslq	%ebp, %r12
+	movq	$0, nwatches(%rip)
+	leaq	0(,%r12,4), %rdi
+	call	malloc
+	leaq	0(,%r12,8), %rdi
+	movq	%rax, %rbx
+	movq	%rax, fd_rw(%rip)
+	call	malloc
+	testq	%rax, %rax
+	movq	%rax, fd_data(%rip)
+	je	.L59
+	testq	%rbx, %rbx
+	je	.L59
+	testl	%ebp, %ebp
+	jle	.L61
+	leal	-1(%rbp), %edx
+	movq	%rbx, %rax
+	leaq	4(%rbx,%rdx,4), %rdx
+	.p2align 4,,10
+	.p2align 3
+.L60:
+	movl	$-1, (%rax)
+	addq	$4, %rax
+	cmpq	%rdx, %rax
+	jne	.L60
+.L61:
+	movl	%ebp, %edi
+	call	poll_init
+	cmpl	$-1, %eax
+	je	.L59
+.L51:
+	addq	$16, %rsp
+	.cfi_remember_state
+	.cfi_def_cfa_offset 32
+	movl	%ebp, %eax
+	popq	%rbx
+	.cfi_def_cfa_offset 24
+	popq	%rbp
+	.cfi_def_cfa_offset 16
+	popq	%r12
+	.cfi_def_cfa_offset 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L68:
+	.cfi_restore_state
+	movq	%rdx, (%rsp)
+	jmp	.L54
+	.p2align 4,,10
+	.p2align 3
+.L67:
+	movq	$8192, (%rsp)
+	jmp	.L54
+.L59:
+	movl	$-1, %ebp
+	jmp	.L51
+	.cfi_endproc
+.LFE2:
+	.size	fdwatch_get_nfiles, .-fdwatch_get_nfiles
+	.section	.rodata.str1.8
+	.align 8
+.LC4:
+	.string	"bad fd (%d) passed to fdwatch_add_fd!"
+	.text
+	.p2align 4,,15
+	.globl	fdwatch_add_fd
+	.type	fdwatch_add_fd, @function
+fdwatch_add_fd:
+.LFB3:
+	.cfi_startproc
+	testl	%edi, %edi
+	pushq	%r12
+	.cfi_def_cfa_offset 16
+	.cfi_offset 12, -16
+	pushq	%rbp
+	.cfi_def_cfa_offset 24
+	.cfi_offset 6, -24
+	pushq	%rbx
+	.cfi_def_cfa_offset 32
+	.cfi_offset 3, -32
+	js	.L70
+	cmpl	nfiles(%rip), %edi
+	jge	.L70
+	movq	fd_rw(%rip), %rax
+	movslq	%edi, %rbp
+	cmpl	$-1, (%rax,%rbp,4)
+	je	.L71
+.L70:
+	popq	%rbx
+	.cfi_remember_state
+	.cfi_def_cfa_offset 24
+	popq	%rbp
+	.cfi_def_cfa_offset 16
+	popq	%r12
+	.cfi_def_cfa_offset 8
+	movl	%edi, %edx
+	movl	$.LC4, %esi
+	movl	$3, %edi
+	xorl	%eax, %eax
+	jmp	syslog
+	.p2align 4,,10
+	.p2align 3
+.L71:
+	.cfi_restore_state
+	movq	%rsi, %r12
+	movl	%edx, %esi
+	movl	%edx, %ebx
+	call	poll_add_fd
+	movq	fd_rw(%rip), %rax
+	movl	%ebx, (%rax,%rbp,4)
+	movq	fd_data(%rip), %rax
+	movq	%r12, (%rax,%rbp,8)
+	popq	%rbx
+	.cfi_def_cfa_offset 24
+	popq	%rbp
+	.cfi_def_cfa_offset 16
+	popq	%r12
+	.cfi_def_cfa_offset 8
+	ret
+	.cfi_endproc
+.LFE3:
+	.size	fdwatch_add_fd, .-fdwatch_add_fd
+	.section	.rodata.str1.8
+	.align 8
+.LC5:
+	.string	"bad fd (%d) passed to fdwatch_del_fd!"
+	.text
+	.p2align 4,,15
+	.globl	fdwatch_del_fd
+	.type	fdwatch_del_fd, @function
+fdwatch_del_fd:
+.LFB4:
+	.cfi_startproc
+	testl	%edi, %edi
+	pushq	%rbx
+	.cfi_def_cfa_offset 16
+	.cfi_offset 3, -16
+	js	.L74
+	cmpl	nfiles(%rip), %edi
+	jge	.L74
+	movq	fd_rw(%rip), %rax
+	movslq	%edi, %rbx
+	cmpl	$-1, (%rax,%rbx,4)
+	je	.L74
+	call	poll_del_fd
+	movq	fd_rw(%rip), %rax
+	movl	$-1, (%rax,%rbx,4)
+	movq	fd_data(%rip), %rax
+	movq	$0, (%rax,%rbx,8)
+	popq	%rbx
+	.cfi_remember_state
+	.cfi_def_cfa_offset 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L74:
+	.cfi_restore_state
+	popq	%rbx
+	.cfi_def_cfa_offset 8
+	movl	%edi, %edx
+	movl	$.LC5, %esi
+	movl	$3, %edi
+	xorl	%eax, %eax
+	jmp	syslog
+	.cfi_endproc
+.LFE4:
+	.size	fdwatch_del_fd, .-fdwatch_del_fd
+	.p2align 4,,15
+	.globl	fdwatch
+	.type	fdwatch, @function
+fdwatch:
+.LFB5:
+	.cfi_startproc
+	subq	$8, %rsp
+	.cfi_def_cfa_offset 16
+	addq	$1, nwatches(%rip)
+	call	poll_watch
+	movl	%eax, nreturned(%rip)
+	movl	$0, next_ridx(%rip)
+	addq	$8, %rsp
+	.cfi_def_cfa_offset 8
+	ret
+	.cfi_endproc
+.LFE5:
+	.size	fdwatch, .-fdwatch
+	.section	.rodata.str1.8
+	.align 8
+.LC6:
+	.string	"bad fd (%d) passed to fdwatch_check_fd!"
+	.text
+	.p2align 4,,15
+	.globl	fdwatch_check_fd
+	.type	fdwatch_check_fd, @function
+fdwatch_check_fd:
+.LFB6:
+	.cfi_startproc
+	testl	%edi, %edi
+	js	.L80
+	cmpl	nfiles(%rip), %edi
+	jge	.L80
+	movq	fd_rw(%rip), %rdx
+	movslq	%edi, %rax
+	cmpl	$-1, (%rdx,%rax,4)
+	je	.L80
+	jmp	poll_check_fd
+	.p2align 4,,10
+	.p2align 3
+.L80:
+	subq	$8, %rsp
+	.cfi_def_cfa_offset 16
+	movl	%edi, %edx
+	xorl	%eax, %eax
+	movl	$.LC6, %esi
+	movl	$3, %edi
+	call	syslog
+	xorl	%eax, %eax
+	addq	$8, %rsp
+	.cfi_def_cfa_offset 8
+	ret
+	.cfi_endproc
+.LFE6:
+	.size	fdwatch_check_fd, .-fdwatch_check_fd
+	.p2align 4,,15
+	.globl	fdwatch_get_next_client_data
+	.type	fdwatch_get_next_client_data, @function
+fdwatch_get_next_client_data:
+.LFB7:
+	.cfi_startproc
+	movl	next_ridx(%rip), %edi
+	cmpl	nreturned(%rip), %edi
+	movq	$-1, %rax
+	jl	.L96
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L96:
+	leal	1(%rdi), %eax
+	subq	$8, %rsp
+	.cfi_def_cfa_offset 16
+	movl	%eax, next_ridx(%rip)
+	call	poll_get_fd
+	testl	%eax, %eax
+	js	.L90
+	cmpl	nfiles(%rip), %eax
+	jge	.L90
+	movq	fd_data(%rip), %rdx
+	cltq
+	movq	(%rdx,%rax,8), %rax
+.L86:
+	addq	$8, %rsp
+	.cfi_remember_state
+	.cfi_def_cfa_offset 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L90:
+	.cfi_restore_state
+	xorl	%eax, %eax
+	jmp	.L86
+	.cfi_endproc
+.LFE7:
+	.size	fdwatch_get_next_client_data, .-fdwatch_get_next_client_data
+	.section	.rodata.str1.1
+.LC7:
+	.string	"poll"
+.LC8:
+	.string	"  fdwatch - %ld %ss (%g/sec)"
+	.text
+	.p2align 4,,15
+	.globl	fdwatch_logstats
+	.type	fdwatch_logstats, @function
+fdwatch_logstats:
+.LFB8:
+	.cfi_startproc
+	testq	%rdi, %rdi
+	jle	.L100
+	subq	$8, %rsp
+	.cfi_def_cfa_offset 16
+	pxor	%xmm0, %xmm0
+	movq	nwatches(%rip), %rdx
+	pxor	%xmm1, %xmm1
+	movl	$.LC7, %ecx
+	movl	$.LC8, %esi
+	movl	$1, %eax
+	cvtsi2ssq	%rdi, %xmm1
+	movl	$6, %edi
+	cvtsi2ssq	%rdx, %xmm0
+	divss	%xmm1, %xmm0
+	cvtss2sd	%xmm0, %xmm0
+	call	syslog
+	movq	$0, nwatches(%rip)
+	addq	$8, %rsp
+	.cfi_def_cfa_offset 8
+	ret
+	.p2align 4,,10
+	.p2align 3
+.L100:
+	movq	$0, nwatches(%rip)
+	ret
+	.cfi_endproc
+.LFE8:
+	.size	fdwatch_logstats, .-fdwatch_logstats
+	.local	poll_rfdidx
+	.comm	poll_rfdidx,8,8
+	.local	poll_fdidx
+	.comm	poll_fdidx,8,8
+	.local	npoll_fds
+	.comm	npoll_fds,4,4
+	.local	pollfds
+	.comm	pollfds,8,8
+	.local	next_ridx
+	.comm	next_ridx,4,4
+	.local	nreturned
+	.comm	nreturned,4,4
+	.local	fd_data
+	.comm	fd_data,8,8
+	.local	fd_rw
+	.comm	fd_rw,8,8
+	.local	nwatches
+	.comm	nwatches,8,8
+	.local	nfiles
+	.comm	nfiles,4,4
+	.ident	"GCC: (GNU) 6.2.0"
+	.section	.note.GNU-stack,"",@progbits

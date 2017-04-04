@@ -1,0 +1,17 @@
+12.18
+A. H2, L2, U2, H1, L1, S2, U1, S1, T1, T2 unsafe
+B. H2, H1, L1, U1, S1, L2, T1, U2, S2, T2 safe
+C. H1, L1, H2, L2, U2, S2, U1, S1, T1, T2 unsafe
+
+12.24
+ssize_t rio_readn(int fd, void *usrbuf, size_t n);
+ssize_t rio_written(int fd, void *usrbuf, size_t n);
+
+basically at best these functions are implicit retrant if the pointers
+point to different location in memory, However, calls to rio_readn and 
+rio_written can be interleaved arbitrarily on the same desciptor. For example,
+if we have two rio_write  functions that  are called with the same file descriptor, lets say stdout, then they will both be wrting to the same thing which is 
+highly probably and is unsafe, With rio_read, it does not encounter the same 
+problem because you could call multiple rio_read and have them be
+implicitly reentrant. Also any function than uses these non-reentrant functions
+are non reentrant by extension.

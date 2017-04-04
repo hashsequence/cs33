@@ -1,0 +1,241 @@
+first I did make seq
+and ran seq
+./seq
+
+output:
+
+make seq
+gcc -o seq  -O3 filter.c main.c func.c util.c -lm
+[classave@lnxsrv09 ~/cs33/lab4/openmplab]$ ./seq
+FUNC TIME : 0.738200
+TOTAL TIME : 2.477685
+
+I then ran make seq GPROF=1
+
+then 
+gprof seq
+
+part of output:
+
+gprof seq
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ms/call  ms/call  name
+ 70.09      0.56     0.56       15    37.38    38.71  func1
+ 13.14      0.67     0.11  5177344     0.00     0.00  rand2
+  5.01      0.71     0.04   491520     0.00     0.00  findIndexBin
+  3.76      0.74     0.03        1    30.04   115.22  addSeed
+  2.50      0.76     0.02        2    10.01    10.01  init
+  1.25      0.77     0.01       15     0.67     3.34  func5
+  1.25      0.78     0.01        1    10.01    10.01  imdilateDisk
+  1.25      0.79     0.01                             filter
+  1.25      0.80     0.01                             sequence
+  0.63      0.80     0.01       15     0.33     0.33  rand1
+  0.00      0.80     0.00   983042     0.00     0.00  round
+  0.00      0.80     0.00       16     0.00     0.00  dilateMatrix
+  0.00      0.80     0.00       15     0.00     0.00  func2
+  0.00      0.80     0.00       15     0.00     0.00  func3
+  0.00      0.80     0.00       15     0.00     0.00  func4
+  0.00      0.80     0.00        2     0.00     0.00  get_time
+  0.00      0.80     0.00        1     0.00     0.00  elapsed_time
+  0.00      0.80     0.00        1     0.00     0.00  fillMatrix
+  0.00      0.80     0.00        1     0.00     0.00  func0
+  0.00      0.80     0.00        1     0.00     0.00  getNeighbors
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+           else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this
+           function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+           the function in the gprof listing. If the index is
+           in parenthesis it shows where it would appear in
+           the gprof listing if it were to be printed.
+
+func1 takes of 70% of the time, so if I make this 
+faster it will improve the time by a lot
+
+First I had to learn how to use omp
+I looked at the TA slides and the important syntax were:
+
+#pragma omp parallel for // used for the outermost for loop
+
+if I dont want to share some of the private variables then I use:
+#pragma omp parallel for private(variable1, variable2,..)
+
+if I I want to parallelize accumulators I do:
+#pragma omp parallel for reduction(op:acc)
+
+op := {+/-*} acc := accumlator
+
+When I was playing around with omp:
+I ran into many errors such as the nested for loops
+since there were two nested for loops inside a for loop in func1
+I couldn't use #pragma omp parallel for collapse(2), so I used 
+I divided the nested for loops into two sets
+of nested for loops and used private(j)
+
+then I ran
+make omp GPROF
+./omp
+output:
+
+FUNC TIME : 0.131901
+TOTAL TIME : 2.025909
+
+gprof omp
+
+partial output:
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ms/call  ms/call  name
+ 62.73      0.47     0.47       49     9.60    11.26  filter
+ 21.36      0.63     0.16  4219791     0.00     0.00  rand2
+ 10.68      0.71     0.08    11907     0.01     0.01  findIndexBin
+  2.67      0.73     0.02        2    10.01    10.01  init
+  1.33      0.74     0.01        1    10.01    10.01  imdilateDisk
+  1.33      0.75     0.01                             sequence
+  0.00      0.75     0.00    58298     0.00     0.00  round
+  0.00      0.75     0.00       16     0.00     0.00  dilateMatrix
+  0.00      0.75     0.00       15     0.00     0.00  func1
+  0.00      0.75     0.00       15     0.00     0.00  func2
+  0.00      0.75     0.00       15     0.00     0.00  func3
+  0.00      0.75     0.00       15     0.00     0.00  func4
+  0.00      0.75     0.00       15     0.00     0.00  func5
+  0.00      0.75     0.00       15     0.00     0.00  rand1
+  0.00      0.75     0.00        2     0.00     0.00  get_time
+  0.00      0.75     0.00        1     0.00   159.20  addSeed
+  0.00      0.75     0.00        1     0.00     0.00  elapsed_time
+  0.00      0.75     0.00        1     0.00     0.00  fillMatrix
+  0.00      0.75     0.00        1     0.00     0.00  func0
+  0.00      0.75     0.00        1     0.00     0.00  getNeighbors
+
+I did a make clean and compiled seq and omp regularly and got this:
+
+[classave@lnxsrv09 ~/cs33/lab4/openmplab]$ make clean
+rm -f seq omp filter output.txt mtrace.out gprof.out
+[classave@lnxsrv09 ~/cs33/lab4/openmplab]$ make omp
+gcc -o omp  -O3 -fopenmp filter.c main.c func.c util.c -lm
+[classave@lnxsrv09 ~/cs33/lab4/openmplab]$ ./omp
+FUNC TIME : 0.048028
+TOTAL TIME : 1.860643
+[classave@lnxsrv09 ~/cs33/lab4/openmplab]$ make seq
+gcc -o seq  -O3 filter.c main.c func.c util.c -lm
+[classave@lnxsrv09 ~/cs33/lab4/openmplab]$ ./seq
+FUNC TIME : 0.744078
+TOTAL TIME : 2.497550
+[classave@lnxsrv09 ~/cs33/lab4/openmplab]$
+
+according to this the function time got got 18.5 times faster
+on linux server 9
+I then ran make clean
+then ran make check:
+
+make check
+gcc -o omp  -O3 -fopenmp filter.c main.c func.c util.c -lm
+cp omp filter
+./filter
+FUNC TIME : 0.043683
+TOTAL TIME : 1.842238
+diff --brief correct.txt output.txt
+
+
+I then changed the default number of threads to 16 and these  were my results:
+//note: I did this on lnxsrv07
+
+[classave@lnxsrv07 ~/cs33/lab4/openmplab]$ make check
+gcc -o omp  -O3 -fopenmp filter.c main.c func.c util.c -lm
+cp omp filter
+./filter
+FUNC TIME : 0.073167
+TOTAL TIME : 1.969032
+diff --brief correct.txt output.txt
+[classave@lnxsrv07 ~/cs33/lab4/openmplab]$ make check
+gcc -o omp  -O3 -fopenmp filter.c main.c func.c util.c -lm
+cp omp filter
+./filter
+FUNC TIME : 0.072516
+TOTAL TIME : 1.965860
+diff --brief correct.txt output.txt
+
+SO I GOT on average .072 seconds for function time for OMP
+and I gon on average .73 on linuxserver 7
+
+I changed the number of threads to 24 and I got:
+
+[classave@lnxsrv07 ~/cs33/lab4/openmplab]$ make check
+gcc -o omp  -O3 -fopenmp filter.c main.c func.c util.c -lm
+cp omp filter
+./filter
+FUNC TIME : 0.050992
+TOTAL TIME : 1.950212
+diff --brief correct.txt output.txt
+
+I then ran checkmem:
+
+[classave@lnxsrv07 ~/cs33/lab4/openmplab]$ make checkmem
+mtrace filter mtrace.out || true
+
+Memory not freed:
+-----------------
+           Address     Size     Caller
+0x0000000001f31060   0x2040  at 0x7f67c1f99869
+0x0000000001f330b0     0xc0  at 0x7f67c1f99869
+0x0000000001f33180    0x108  at 0x7f67c1f998b9
+0x0000000001f33290    0x240  at 0x7f67c24c9c25
+0x0000000001f334e0    0x240  at 0x7f67c24c9c25
+0x0000000001f33730    0x240  at 0x7f67c24c9c25
+0x0000000001f33980    0x240  at 0x7f67c24c9c25
+0x0000000001f33bd0    0x240  at 0x7f67c24c9c25
+0x0000000001f33e20    0x240  at 0x7f67c24c9c25
+0x0000000001f34070    0x240  at 0x7f67c24c9c25
+0x0000000001f342c0    0x240  at 0x7f67c24c9c25
+0x0000000001f34510    0x240  at 0x7f67c24c9c25
+0x0000000001f34760    0x240  at 0x7f67c24c9c25
+0x0000000001f349b0    0x240  at 0x7f67c24c9c25
+0x0000000001f34c00    0x240  at 0x7f67c24c9c25
+0x0000000001f34e50    0x240  at 0x7f67c24c9c25
+0x0000000001f350a0    0x240  at 0x7f67c24c9c25
+0x0000000001f352f0    0x240  at 0x7f67c24c9c25
+0x0000000001f35540    0x240  at 0x7f67c24c9c25
+0x0000000001f35790    0x240  at 0x7f67c24c9c25
+0x0000000001f359e0    0x240  at 0x7f67c24c9c25
+0x0000000001f35c30    0x240  at 0x7f67c24c9c25
+0x0000000001f35e80    0x240  at 0x7f67c24c9c25
+0x0000000001f360d0    0x240  at 0x7f67c24c9c25
+0x0000000001f36320    0x240  at 0x7f67c24c9c25
+0x0000000001f36570    0x240  at 0x7f67c24c9c25
+0x0000000001f367c0    0x240  at 0x7f67c24c9c25
+0x0000000001f36a10    0x240  at 0x7f67c24c9c25
+0x0000000001f36c60    0x240  at 0x7f67c24c9c25
+0x0000000001f36eb0    0x240  at 0x7f67c24c9c25
+0x0000000001f37100    0x240  at 0x7f67c24c9c25
+0x0000000001f37350    0x240  at 0x7f67c24c9c25
+0x0000000001f375a0    0x240  at 0x7f67c24c9c25
+0x0000000001f377f0    0x240  at 0x7f67c24c9c25
+
+I keep getting memory leak at 0x7f67c24c9c25
+31 times
+which I assume is from the 31 threads that was created
+, piazza told me these leaks didnt matter so I disregarded them

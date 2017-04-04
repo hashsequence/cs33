@@ -1,0 +1,25 @@
+I DECIDED TO RESTART AGAIN
+
+first I went into GDB
+gdb src/thttpd-no
+
+I set a breakpoint at read_config
+
+step until while ( fgets( line, 1000, fp ) != (char*) 0 )
+
+look at the stack pointer which was 
+the beggining of the pointer to line since it holds the buffer
+ and it was
+0x7fffffffcf40 
+
+
+I step through until fclose
+and the rsp was 0x7fffffffcfd8 
+took the difference and it was -152 from 0x...f40
+here are my calculates at the addresses I will be using 
+
+0x7fffffffcf40 at the beggining 0
+0x7fffffffcfd8 at the end -152
+0x7fffffffcfe0 -160
+0x7fffffffcf40 -171
+ 

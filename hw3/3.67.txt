@@ -1,0 +1,94 @@
+3.67 3rd edition
+
+A)
+
+adresss
+-------
+104    |   |
+96     |   |
+88     |   |
+80     |   |
+72     |   |
+64     |   |
+56     |   |
+48     |   |
+40     |   |
+32     |   |
+24     | z |
+16     | &z|
+8      | y |
+0      | x |   <--rsp
+
+B)
+
+leaq 64(%rsp), %%rdi
+
+this assembly code line calculates the address of rsp + 64
+and passes this into rdi thus it passes the adress rsp + 64
+
+C)
+
+The code process elements of S by using the stack pointer.
+It is important to note that when call is used it pushes 
+the return address after the call into the stack, thus 
+the stack pointer is decremented by 8, so now:
+
+rsp + 8 --> x
+rsp + 16 --> y
+rsp + 24 --> z
+
+D) The code process elements of r by using rdi which holds 
+the address of 64 + rsp before call process was initiated
+so 
+rax = rdi
+rdi --> r.u[0]
+rdi + 8 --> r.u[1]
+rdi + 16 --> r.q
+
+E) 
+
+//before ret in process
+adresss
+-------
+104    |   |
+96     |   |
+88     |   |
+80     |   |
+72     | z |
+64     | x |
+56     | y |
+48     |   |
+40     |   |
+32     | Z |
+24     | &z|
+16     | y |
+8      | x |
+0      | return adress |   <--rsp
+
+after ret in process:
+
+adresss
+-------
+104    |   |
+96     |   |
+88     |   |
+80     | z |
+72     | x |
+64     | y |
+56     |   |
+48     |   |
+40     |   |
+32     |   |
+24     | z |
+16     | &z|
+8      | y |
+0      | x |   <--rsp
+
+F.
+
+when structures are passed as arguments they are passed
+as adresses usually calculated using the rsp pointed
+to the first element of the structure
+
+when they are returned the rax still holds the address that 
+points to the first element of the structure
